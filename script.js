@@ -847,7 +847,7 @@ class TarneebTracker {
         if (game.photos && game.photos.length > 0) {
             // Multiple photos
             const photosHtml = game.photos.map(photo =>
-                `<img src="${photo}" alt="Game proof" class="game-photo" style="max-width: 100px; max-height: 100px; border-radius: 8px; margin: 2px; cursor: pointer;" onerror="console.error('Image failed to load:', '${photo}')">`
+                `<img src="${photo}" alt="Game proof" class="game-photo" style="max-width: 100px; max-height: 100px; border-radius: 8px; margin: 2px; cursor: pointer;" onclick="showPhoto('${photo}')" onerror="console.error('Image failed to load:', '${photo}')">`
             ).join('');
 
             return `
@@ -859,7 +859,7 @@ class TarneebTracker {
             // Single photo (backward compatibility)
             return `
                 <div style="margin-top: 15px; text-align: center;">
-                    <img src="${game.photo}" alt="Game proof" class="game-photo" style="max-width: 100px; max-height: 100px; border-radius: 8px; cursor: pointer;" onerror="console.error('Image failed to load:', '${game.photo}')">
+                    <img src="${game.photo}" alt="Game proof" class="game-photo" style="max-width: 100px; max-height: 100px; border-radius: 8px; cursor: pointer;" onclick="showPhoto('${game.photo}')" onerror="console.error('Image failed to load:', '${game.photo}')">
                 </div>
             `;
         }
@@ -1090,7 +1090,7 @@ class TarneebTracker {
         if (game.photos && game.photos.length > 0) {
             // Multiple photos
             const photosHtml = game.photos.map(photo =>
-                `<img src="${photo}" alt="Game proof" class="game-photo" style="cursor: pointer; max-width: 200px; max-height: 200px; border-radius: 8px; margin: 5px;" onerror="console.error('Image failed to load:', '${photo}')">`
+                `<img src="${photo}" alt="Game proof" class="game-photo" style="cursor: pointer; max-width: 200px; max-height: 200px; border-radius: 8px; margin: 5px;" onclick="showPhoto('${photo}')" onerror="console.error('Image failed to load:', '${photo}')">`
             ).join('');
 
             return `
@@ -1106,7 +1106,7 @@ class TarneebTracker {
             return `
                 <div class="game-details-photo">
                     <h4>Game Proof</h4>
-                    <img src="${game.photo}" alt="Game proof" class="game-photo" style="cursor: pointer;" onerror="console.error('Image failed to load:', '${game.photo}')">
+                    <img src="${game.photo}" alt="Game proof" class="game-photo" style="cursor: pointer;" onclick="showPhoto('${game.photo}')" onerror="console.error('Image failed to load:', '${game.photo}')">
                 </div>
             `;
         }
@@ -1720,31 +1720,7 @@ class TarneebTracker {
             this.hidePhotoModal();
         });
 
-        // Photo enlargement - use event delegation for dynamically created photos
-        document.addEventListener('click', (e) => {
-            console.log('Click detected on:', e.target);
-            console.log('Target classes:', e.target.classList);
-            console.log('Has game-photo class:', e.target.classList.contains('game-photo'));
-
-            if (e.target.classList.contains('game-photo')) {
-                const photoSrc = e.target.src;
-                console.log('Photo clicked:', photoSrc);
-                console.log('About to call showEnlargedPhoto');
-                this.showEnlargedPhoto(photoSrc);
-            }
-        });
-
-        // Test modal elements on page load
-        setTimeout(() => {
-            const modal = document.getElementById('photoModal');
-            const photo = document.getElementById('enlargedPhoto');
-            console.log('Modal element found:', !!modal);
-            console.log('Photo element found:', !!photo);
-            if (modal) {
-                console.log('Modal classes:', modal.className);
-                console.log('Modal display:', window.getComputedStyle(modal).display);
-            }
-        }, 1000);
+        // Photo enlargement - use global function for inline onclick handlers
 
         document.getElementById('cancelGame').addEventListener('click', () => {
             this.hideGameModal();
@@ -1912,6 +1888,16 @@ class TarneebTracker {
 // Initialize the application
 const tracker = new TarneebTracker();
 window.tracker = tracker; // Make it globally available
+
+// Global function for photo enlargement
+function showPhoto(photoSrc) {
+    console.log('showPhoto called with:', photoSrc);
+    if (tracker && tracker.showEnlargedPhoto) {
+        tracker.showEnlargedPhoto(photoSrc);
+    } else {
+        console.error('Tracker not available for photo enlargement');
+    }
+}
 
 
 // Set today's date as default
