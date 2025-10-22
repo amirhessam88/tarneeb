@@ -89,7 +89,15 @@ class TarneebTracker {
     }
 
     showLoginModal() {
-        document.getElementById('loginModal').classList.add('active');
+        console.log('showLoginModal called');
+        const modal = document.getElementById('loginModal');
+        if (modal) {
+            modal.classList.add('active');
+            modal.style.display = 'flex';
+            console.log('Login modal should be visible now');
+        } else {
+            console.error('Login modal element not found');
+        }
     }
 
     hideLoginModal() {
@@ -140,7 +148,14 @@ class TarneebTracker {
             return;
         }
 
+        // Additional Chrome-specific protection
+        if (window.tarneebApiCallInProgress) {
+            console.log('Global API call already in progress, skipping...');
+            return;
+        }
+
         this.apiCallInProgress = true;
+        window.tarneebApiCallInProgress = true;
 
         try {
             console.log('Attempting to load games from:', `${this.apiBase}?action=games&v=${Date.now()}`);
@@ -195,6 +210,7 @@ class TarneebTracker {
             }
         } finally {
             this.apiCallInProgress = false;
+            window.tarneebApiCallInProgress = false;
         }
     }
 
@@ -1155,26 +1171,41 @@ class TarneebTracker {
     // Photo Enlargement
     showEnlargedPhoto(photoSrc) {
         console.log('showEnlargedPhoto called with:', photoSrc);
-        const modal = document.getElementById('photoModal');
-        const photo = document.getElementById('enlargedPhoto');
 
-        if (!modal) {
-            console.error('photoModal element not found');
-            return;
-        }
+        // Use a small delay to ensure DOM is ready
+        setTimeout(() => {
+            const modal = document.getElementById('photoModal');
+            const photo = document.getElementById('enlargedPhoto');
 
-        if (!photo) {
-            console.error('enlargedPhoto element not found');
-            return;
-        }
+            if (!modal) {
+                console.error('photoModal element not found');
+                return;
+            }
 
-        photo.src = photoSrc;
-        modal.classList.add('active');
-        console.log('Modal should be visible now');
+            if (!photo) {
+                console.error('enlargedPhoto element not found');
+                return;
+            }
+
+            // Set the photo source
+            photo.src = photoSrc;
+
+            // Show the modal
+            modal.classList.add('active');
+            modal.style.display = 'flex';
+
+            console.log('Modal should be visible now');
+            console.log('Modal classes:', modal.className);
+            console.log('Modal style display:', modal.style.display);
+        }, 10);
     }
 
     hidePhotoModal() {
-        document.getElementById('photoModal').classList.remove('active');
+        const modal = document.getElementById('photoModal');
+        if (modal) {
+            modal.classList.remove('active');
+            modal.style.display = 'none';
+        }
     }
 
     // Player Name Validation and Autocomplete
@@ -1669,9 +1700,16 @@ class TarneebTracker {
     // Event Listeners
     initializeEventListeners() {
         // Admin login button
-        document.getElementById('adminLoginBtn').addEventListener('click', () => {
-            this.showLoginModal();
-        });
+        const adminLoginBtn = document.getElementById('adminLoginBtn');
+        if (adminLoginBtn) {
+            adminLoginBtn.addEventListener('click', () => {
+                console.log('Admin login button clicked');
+                this.showLoginModal();
+            });
+            console.log('Admin login button event listener attached');
+        } else {
+            console.error('Admin login button not found');
+        }
 
         // Login form
         document.getElementById('loginForm').addEventListener('submit', (e) => {
@@ -1913,19 +1951,33 @@ class TarneebTracker {
 // Initialize the application with Chrome-specific handling
 let tracker;
 
-// Chrome-specific initialization to prevent refresh loops
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-        if (!window.tarneebTrackerInitialized) {
-            tracker = new TarneebTracker();
-        }
-    });
-} else {
-    // DOM already loaded
-    if (!window.tarneebTrackerInitialized) {
-        tracker = new TarneebTracker();
+// Prevent multiple initializations and Chrome refresh loops
+(function () {
+    // Check if already initialized
+    if (window.tarneebTrackerInitialized) {
+        console.log('TarneebTracker already initialized, skipping...');
+        return;
     }
-}
+
+    // Mark as initializing to prevent race conditions
+    window.tarneebTrackerInitialized = true;
+
+    // Chrome-specific initialization
+    function initializeTracker() {
+        if (!tracker) {
+            tracker = new TarneebTracker();
+            window.tracker = tracker; // Make tracker globally available
+            console.log('TarneebTracker initialized successfully');
+        }
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initializeTracker);
+    } else {
+        // DOM already loaded
+        initializeTracker();
+    }
+})();
 
 // Set today's date as default
 document.addEventListener('DOMContentLoaded', () => {
