@@ -10,11 +10,12 @@ class TarneebTracker {
         this.offlineWarningShown = false;
         this.frequentPlayers = [
             'Ali', 'Amir', 'Bassel', 'Brittany', 'Christina', 'Hesham',
-            'Joseph', 'Osama', 'Raquel', 'Youssef', 'Zena'
+            'Joseph', 'Lester', 'Osama', 'Raquel', 'Youssef', 'Zena'
         ];
 
         this.initializeEventListeners();
         this.loadConfig();
+        this.initializeRounds();
     }
 
     async loadConfig() {
@@ -202,12 +203,62 @@ class TarneebTracker {
         const game = {
             id: Date.now().toString(),
             ...gameData,
-            createdAt: new Date().toISOString()
+            createdAt: new Date().toISOString(),
+            // Calculate game winner based on rounds
+            winner: this.calculateGameWinner(gameData.rounds),
+            // Calculate round results
+            roundResults: this.calculateRoundResults(gameData.rounds)
         };
         this.games.unshift(game);
         this.saveGames();
         this.updateStats();
         this.renderGames();
+    }
+
+    // Calculate game winner based on rounds (2 out of 3 wins)
+    calculateGameWinner(rounds) {
+        if (!rounds || rounds.length === 0) return null;
+
+        let team1Wins = 0;
+        let team2Wins = 0;
+        let draws = 0;
+
+        rounds.forEach(round => {
+            if (round.team1Score > round.team2Score) {
+                team1Wins++;
+            } else if (round.team2Score > round.team1Score) {
+                team2Wins++;
+            } else {
+                draws++;
+            }
+        });
+
+        // Complete wins: 2-0 or 2-1 (team has 2+ wins)
+        if (team1Wins >= 2) return 'team1';
+        if (team2Wins >= 2) return 'team2';
+
+        // Incomplete scenarios with specific outcomes
+        if (team1Wins === 1 && team2Wins === 0) return 'incomplete_team1_win'; // 1-0
+        if (team2Wins === 1 && team1Wins === 0) return 'incomplete_team2_win'; // 0-1
+        if (team1Wins === 1 && team2Wins === 1) return 'incomplete_draw'; // 1-1
+
+        // All other cases are incomplete
+        return 'incomplete';
+    }
+
+    // Calculate individual round results
+    calculateRoundResults(rounds) {
+        if (!rounds || rounds.length === 0) return [];
+
+        return rounds.map(round => {
+            if (round.team1Score > round.team2Score) {
+                return { winner: 'team1', team1Score: round.team1Score, team2Score: round.team2Score };
+            } else if (round.team2Score > round.team1Score) {
+                return { winner: 'team2', team1Score: round.team1Score, team2Score: round.team2Score };
+            } else {
+                return { winner: 'draw', team1Score: round.team1Score, team2Score: round.team2Score };
+            }
+        });
     }
 
     updateGame(gameId, gameData) {
@@ -251,29 +302,92 @@ class TarneebTracker {
 
         this.games.forEach(game => {
             if (game.team1Players && game.team2Players) {
-                // New team format
-                const team1Won = game.team1Score > game.team2Score;
-                const team2Won = game.team2Score > game.team1Score;
+                // Handle rounds-based games
+                if (game.rounds && game.rounds.length > 0) {
+                    const team1Won = game.winner === 'team1';
+                    const team2Won = game.winner === 'team2';
+                    const isDraw = game.winner === 'draw';
+                    const isIncomplete = game.winner === 'incomplete';
+                    const isIncompleteTeam1Win = game.winner === 'incomplete_team1_win';
+                    const isIncompleteTeam2Win = game.winner === 'incomplete_team2_win';
+                    const isIncompleteDraw = game.winner === 'incomplete_draw';
 
-                // Team 1 players
-                game.team1Players.forEach(player => {
-                    if (!playerStats[player]) {
-                        playerStats[player] = { wins: 0, losses: 0, games: 0 };
-                    }
-                    playerStats[player].games++;
-                    if (team1Won) playerStats[player].wins++;
-                    else if (team2Won) playerStats[player].losses++;
-                });
+                    // Team 1 players
+                    game.team1Players.forEach(player => {
+                        if (!playerStats[player]) {
+                            playerStats[player] = { wins: 0, losses: 0, draws: 0, incomplete: 0, games: 0, kaboots: 0 };
+                        }
+                        playerStats[player].games++;
+                        if (team1Won) playerStats[player].wins++;
+                        else if (team2Won) playerStats[player].losses++;
+                        else if (isIncompleteTeam1Win) {
+                            playerStats[player].wins++; // 1-0 is a win
+                            playerStats[player].incomplete++; // but also incomplete
+                        }
+                        else if (isIncompleteTeam2Win) playerStats[player].losses++;
+                        else if (isIncompleteDraw) {
+                            playerStats[player].draws++; // 1-1 is a draw
+                            playerStats[player].incomplete++; // but also incomplete
+                        }
+                        else if (isIncomplete) playerStats[player].incomplete++;
 
-                // Team 2 players
-                game.team2Players.forEach(player => {
-                    if (!playerStats[player]) {
-                        playerStats[player] = { wins: 0, losses: 0, games: 0 };
-                    }
-                    playerStats[player].games++;
-                    if (team2Won) playerStats[player].wins++;
-                    else if (team1Won) playerStats[player].losses++;
-                });
+                        // Add kaboots for Team 1 players
+                        game.rounds.forEach(round => {
+                            playerStats[player].kaboots += round.team1Kaboots || 0;
+                        });
+                    });
+
+                    // Team 2 players
+                    game.team2Players.forEach(player => {
+                        if (!playerStats[player]) {
+                            playerStats[player] = { wins: 0, losses: 0, draws: 0, incomplete: 0, games: 0, kaboots: 0 };
+                        }
+                        playerStats[player].games++;
+                        if (team2Won) playerStats[player].wins++;
+                        else if (team1Won) playerStats[player].losses++;
+                        else if (isIncompleteTeam2Win) {
+                            playerStats[player].wins++; // 0-1 is a win
+                            playerStats[player].incomplete++; // but also incomplete
+                        }
+                        else if (isIncompleteTeam1Win) playerStats[player].losses++;
+                        else if (isIncompleteDraw) {
+                            playerStats[player].draws++; // 1-1 is a draw
+                            playerStats[player].incomplete++; // but also incomplete
+                        }
+                        else if (isIncomplete) playerStats[player].incomplete++;
+
+                        // Add kaboots for Team 2 players
+                        game.rounds.forEach(round => {
+                            playerStats[player].kaboots += round.team2Kaboots || 0;
+                        });
+                    });
+                } else {
+                    // Legacy single-score format
+                    const team1Won = game.team1Score > game.team2Score;
+                    const team2Won = game.team2Score > game.team1Score;
+
+                    // Team 1 players
+                    game.team1Players.forEach(player => {
+                        if (!playerStats[player]) {
+                            playerStats[player] = { wins: 0, losses: 0, draws: 0, incomplete: 0, games: 0, kaboots: 0 };
+                        }
+                        playerStats[player].games++;
+                        if (team1Won) playerStats[player].wins++;
+                        else if (team2Won) playerStats[player].losses++;
+                        else playerStats[player].draws++;
+                    });
+
+                    // Team 2 players
+                    game.team2Players.forEach(player => {
+                        if (!playerStats[player]) {
+                            playerStats[player] = { wins: 0, losses: 0, draws: 0, incomplete: 0, games: 0, kaboots: 0 };
+                        }
+                        playerStats[player].games++;
+                        if (team2Won) playerStats[player].wins++;
+                        else if (team1Won) playerStats[player].losses++;
+                        else playerStats[player].draws++;
+                    });
+                }
             } else {
                 // Legacy individual format - skip for now as it doesn't have clear team structure
             }
@@ -320,6 +434,18 @@ class TarneebTracker {
                             <span class="stat-label">Losses</span>
                         </div>
                         <div class="stat-item">
+                            <span class="stat-value">${stats.draws || 0}</span>
+                            <span class="stat-label">Draws</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value">${stats.incomplete || 0}</span>
+                            <span class="stat-label">Incomplete</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value">${stats.kaboots || 0}</span>
+                            <span class="stat-label">Kaboots</span>
+                        </div>
+                        <div class="stat-item">
                             <span class="stat-value">${stats.games}</span>
                             <span class="stat-label">Games</span>
                         </div>
@@ -343,41 +469,123 @@ class TarneebTracker {
 
         this.games.forEach(game => {
             if (game.team1Players && game.team2Players) {
-                const team1Won = game.team1Score > game.team2Score;
-                const team2Won = game.team2Score > game.team1Score;
+                // Handle rounds-based games
+                if (game.rounds && game.rounds.length > 0) {
+                    const team1Won = game.winner === 'team1';
+                    const team2Won = game.winner === 'team2';
+                    const isDraw = game.winner === 'draw';
+                    const isIncomplete = game.winner === 'incomplete';
+                    const isIncompleteTeam1Win = game.winner === 'incomplete_team1_win';
+                    const isIncompleteTeam2Win = game.winner === 'incomplete_team2_win';
+                    const isIncompleteDraw = game.winner === 'incomplete_draw';
 
-                // Normalize team names
-                const team1Name = this.normalizeTeamName(game.team1Players);
-                const team2Name = this.normalizeTeamName(game.team2Players);
+                    // Normalize team names
+                    const team1Name = this.normalizeTeamName(game.team1Players);
+                    const team2Name = this.normalizeTeamName(game.team2Players);
 
-                // Initialize team stats if not exists
-                if (!teamStats[team1Name]) {
-                    teamStats[team1Name] = {
-                        players: game.team1Players,
-                        wins: 0,
-                        losses: 0,
-                        games: 0
-                    };
-                }
-                if (!teamStats[team2Name]) {
-                    teamStats[team2Name] = {
-                        players: game.team2Players,
-                        wins: 0,
-                        losses: 0,
-                        games: 0
-                    };
-                }
+                    // Initialize team stats if not exists
+                    if (!teamStats[team1Name]) {
+                        teamStats[team1Name] = {
+                            players: game.team1Players,
+                            wins: 0,
+                            losses: 0,
+                            draws: 0,
+                            incomplete: 0,
+                            games: 0,
+                            kaboots: 0
+                        };
+                    }
+                    if (!teamStats[team2Name]) {
+                        teamStats[team2Name] = {
+                            players: game.team2Players,
+                            wins: 0,
+                            losses: 0,
+                            draws: 0,
+                            incomplete: 0,
+                            games: 0,
+                            kaboots: 0
+                        };
+                    }
 
-                // Update stats
-                teamStats[team1Name].games++;
-                teamStats[team2Name].games++;
+                    // Update stats
+                    teamStats[team1Name].games++;
+                    teamStats[team2Name].games++;
 
-                if (team1Won) {
-                    teamStats[team1Name].wins++;
-                    teamStats[team2Name].losses++;
-                } else if (team2Won) {
-                    teamStats[team2Name].wins++;
-                    teamStats[team1Name].losses++;
+                    if (team1Won) {
+                        teamStats[team1Name].wins++;
+                        teamStats[team2Name].losses++;
+                    } else if (team2Won) {
+                        teamStats[team2Name].wins++;
+                        teamStats[team1Name].losses++;
+                    } else if (isIncompleteTeam1Win) {
+                        teamStats[team1Name].wins++; // 1-0 is a win
+                        teamStats[team1Name].incomplete++; // but also incomplete
+                        teamStats[team2Name].losses++;
+                        teamStats[team2Name].incomplete++; // but also incomplete
+                    } else if (isIncompleteTeam2Win) {
+                        teamStats[team2Name].wins++; // 0-1 is a win
+                        teamStats[team2Name].incomplete++; // but also incomplete
+                        teamStats[team1Name].losses++;
+                        teamStats[team1Name].incomplete++; // but also incomplete
+                    } else if (isIncompleteDraw) {
+                        teamStats[team1Name].draws++; // 1-1 is a draw
+                        teamStats[team1Name].incomplete++; // but also incomplete
+                        teamStats[team2Name].draws++; // 1-1 is a draw
+                        teamStats[team2Name].incomplete++; // but also incomplete
+                    } else if (isIncomplete) {
+                        teamStats[team1Name].incomplete++;
+                        teamStats[team2Name].incomplete++;
+                    }
+
+                    // Add kaboots for both teams
+                    game.rounds.forEach(round => {
+                        teamStats[team1Name].kaboots += round.team1Kaboots || 0;
+                        teamStats[team2Name].kaboots += round.team2Kaboots || 0;
+                    });
+                } else {
+                    // Legacy single-score format
+                    const team1Won = game.team1Score > game.team2Score;
+                    const team2Won = game.team2Score > game.team1Score;
+
+                    // Normalize team names
+                    const team1Name = this.normalizeTeamName(game.team1Players);
+                    const team2Name = this.normalizeTeamName(game.team2Players);
+
+                    // Initialize team stats if not exists
+                    if (!teamStats[team1Name]) {
+                        teamStats[team1Name] = {
+                            players: game.team1Players,
+                            wins: 0,
+                            losses: 0,
+                            draws: 0,
+                            incomplete: 0,
+                            games: 0,
+                            kaboots: 0
+                        };
+                    }
+                    if (!teamStats[team2Name]) {
+                        teamStats[team2Name] = {
+                            players: game.team2Players,
+                            wins: 0,
+                            losses: 0,
+                            draws: 0,
+                            incomplete: 0,
+                            games: 0,
+                            kaboots: 0
+                        };
+                    }
+
+                    // Update stats
+                    teamStats[team1Name].games++;
+                    teamStats[team2Name].games++;
+
+                    if (team1Won) {
+                        teamStats[team1Name].wins++;
+                        teamStats[team2Name].losses++;
+                    } else if (team2Won) {
+                        teamStats[team2Name].wins++;
+                        teamStats[team1Name].losses++;
+                    }
                 }
             }
         });
@@ -437,6 +645,18 @@ class TarneebTracker {
                             <span class="team-stat-label">Losses</span>
                         </div>
                         <div class="team-stat-item">
+                            <span class="team-stat-value">${stats.draws || 0}</span>
+                            <span class="team-stat-label">Draws</span>
+                        </div>
+                        <div class="team-stat-item">
+                            <span class="team-stat-value">${stats.incomplete || 0}</span>
+                            <span class="team-stat-label">Incomplete</span>
+                        </div>
+                        <div class="team-stat-item">
+                            <span class="team-stat-value">${stats.kaboots || 0}</span>
+                            <span class="team-stat-label">Kaboots</span>
+                        </div>
+                        <div class="team-stat-item">
                             <span class="team-stat-value">${stats.games}</span>
                             <span class="team-stat-label">Games</span>
                         </div>
@@ -469,10 +689,88 @@ class TarneebTracker {
     renderGameCard(game) {
         const gameDate = new Date(game.gameDate).toLocaleDateString();
 
-        // Handle both old format (individual players) and new format (teams)
+        // Handle rounds-based games
         let gameDisplay;
-        if (game.team1Players && game.team2Players) {
-            // New team format
+        if (game.rounds && game.rounds.length > 0) {
+            // New rounds format
+            const team1Wins = game.roundResults ? game.roundResults.filter(r => r.winner === 'team1').length : 0;
+            const team2Wins = game.roundResults ? game.roundResults.filter(r => r.winner === 'team2').length : 0;
+            const draws = game.roundResults ? game.roundResults.filter(r => r.winner === 'draw').length : 0;
+            const team1Kaboots = game.rounds ? game.rounds.reduce((sum, round) => sum + (round.team1Kaboots || 0), 0) : 0;
+            const team2Kaboots = game.rounds ? game.rounds.reduce((sum, round) => sum + (round.team2Kaboots || 0), 0) : 0;
+
+            const team1Won = game.winner === 'team1';
+            const team2Won = game.winner === 'team2';
+            const isIncomplete = game.winner === 'incomplete';
+            const isIncompleteTeam1Win = game.winner === 'incomplete_team1_win';
+            const isIncompleteTeam2Win = game.winner === 'incomplete_team2_win';
+            const isIncompleteDraw = game.winner === 'incomplete_draw';
+
+            // Generate round scores display
+            const roundScoresHtml = game.rounds.map((round, index) => {
+                const roundResult = game.roundResults ? game.roundResults[index] : null;
+                const roundWinner = roundResult ? roundResult.winner : 'draw';
+                return `
+                    <div class="round-score-item">
+                        <div class="round-number">R${round.number}</div>
+                        <div class="round-scores">
+                            <span class="team1-score ${roundWinner === 'team1' ? 'winner' : ''}">${round.team1Score}</span>
+                            <span class="vs">-</span>
+                            <span class="team2-score ${roundWinner === 'team2' ? 'winner' : ''}">${round.team2Score}</span>
+                        </div>
+                        <div class="round-kaboots">
+                            <span class="kaboot-count">${round.team1Kaboots || 0}</span>
+                            <span class="vs">-</span>
+                            <span class="kaboot-count">${round.team2Kaboots || 0}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            gameDisplay = `
+                <div class="game-teams">
+                    <div class="team-display team1 ${team1Won ? 'winner' : ''}">
+                        <h4>Team 1 ${team1Won ? '🏆' : ''}</h4>
+                        <div class="team-players">
+                            <span class="player-name">${game.team1Players[0]}</span>
+                            <span class="player-name">${game.team1Players[1]}</span>
+                        </div>
+                        <div class="rounds-summary">
+                            <div class="rounds-wins">${team1Wins}-${team2Wins}</div>
+                            <div class="rounds-details">${game.rounds.length} rounds</div>
+                            <div class="rounds-kaboots">${team1Kaboots} kaboots</div>
+                        </div>
+                    </div>
+                    <div class="vs-divider">VS</div>
+                    <div class="team-display team2 ${team2Won ? 'winner' : ''}">
+                        <h4>Team 2 ${team2Won ? '🏆' : ''}</h4>
+                        <div class="team-players">
+                            <span class="player-name">${game.team2Players[0]}</span>
+                            <span class="player-name">${game.team2Players[1]}</span>
+                        </div>
+                        <div class="rounds-summary">
+                            <div class="rounds-wins">${team2Wins}-${team1Wins}</div>
+                            <div class="rounds-details">${game.rounds.length} rounds</div>
+                            <div class="rounds-kaboots">${team2Kaboots} kaboots</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="round-scores-breakdown">
+                    <h5>Round Scores</h5>
+                    <div class="round-scores-list">
+                        ${roundScoresHtml}
+                    </div>
+                </div>
+                <div class="game-status">
+                    ${isIncompleteTeam1Win ? '<span class="status-badge incomplete-win">Incomplete Win (Team 1)</span>' : ''}
+                    ${isIncompleteTeam2Win ? '<span class="status-badge incomplete-win">Incomplete Win (Team 2)</span>' : ''}
+                    ${isIncompleteDraw ? '<span class="status-badge incomplete-draw">Incomplete Draw (1-1)</span>' : ''}
+                    ${isIncomplete ? '<span class="status-badge incomplete">Incomplete</span>' : ''}
+                    ${draws > 0 ? `<span class="status-badge draws">${draws} draws</span>` : ''}
+                </div>
+            `;
+        } else if (game.team1Players && game.team2Players) {
+            // Legacy team format (single score)
             const team1Won = game.team1Score > game.team2Score;
             const team2Won = game.team2Score > game.team1Score;
 
@@ -531,13 +829,32 @@ class TarneebTracker {
                     ${adminButtons}
                 </div>
                 ${gameDisplay}
-                ${game.photo ? `
-                    <div style="margin-top: 15px; text-align: center;">
-                        <img src="${game.photo}" alt="Game proof" class="game-photo" style="max-width: 100px; max-height: 100px; border-radius: 8px;" onclick="tracker.showEnlargedPhoto('${game.photo}')" onerror="console.error('Image failed to load:', '${game.photo}')">
-                    </div>
-                ` : ''}
+                ${this.renderGamePhotos(game)}
             </div>
         `;
+    }
+
+    renderGamePhotos(game) {
+        if (game.photos && game.photos.length > 0) {
+            // Multiple photos
+            const photosHtml = game.photos.map(photo =>
+                `<img src="${photo}" alt="Game proof" class="game-photo" style="max-width: 100px; max-height: 100px; border-radius: 8px; margin: 2px; cursor: pointer;" onclick="tracker.showEnlargedPhoto('${photo}')" onerror="console.error('Image failed to load:', '${photo}')">`
+            ).join('');
+
+            return `
+                <div style="margin-top: 15px; text-align: center;">
+                    ${photosHtml}
+                </div>
+            `;
+        } else if (game.photo) {
+            // Single photo (backward compatibility)
+            return `
+                <div style="margin-top: 15px; text-align: center;">
+                    <img src="${game.photo}" alt="Game proof" class="game-photo" style="max-width: 100px; max-height: 100px; border-radius: 8px;" onclick="tracker.showEnlargedPhoto('${game.photo}')" onerror="console.error('Image failed to load:', '${game.photo}')">
+                </div>
+            `;
+        }
+        return '';
     }
 
     // Modal Management
@@ -560,13 +877,43 @@ class TarneebTracker {
             modalTitle.textContent = 'Add New Game';
             form.reset();
             document.getElementById('photoPreview').innerHTML = '';
+            document.getElementById('gamePhotos').value = '';
+            // Initialize rounds for new game
+            this.rounds = [];
+            console.log('Initializing rounds for new game');
+            // Add a default first round
+            this.addRound();
+            // Render the rounds immediately
+            this.renderRounds();
+
+            // Double-check that rounds are rendered
+            setTimeout(() => {
+                const container = document.getElementById('roundsContainer');
+                if (container && container.innerHTML.trim() === '') {
+                    console.log('Rounds not rendered, forcing render again...');
+                    this.renderRounds();
+                }
+            }, 50);
         }
 
         modal.classList.add('active');
 
-        // Setup autocomplete for player inputs
+        // Setup autocomplete for player inputs and round button
         setTimeout(() => {
             this.setupPlayerAutocomplete();
+            this.setupRoundEventListeners();
+            // Debug: Check if rounds container exists
+            const roundsContainer = document.getElementById('roundsContainer');
+            console.log('Rounds container found:', !!roundsContainer);
+            if (roundsContainer) {
+                console.log('Rounds container HTML:', roundsContainer.innerHTML);
+                console.log('Current rounds array:', this.rounds);
+                // Force render rounds if they're not showing
+                if (this.rounds.length > 0 && roundsContainer.innerHTML.trim() === '') {
+                    console.log('Forcing rounds render...');
+                    this.renderRounds();
+                }
+            }
         }, 100);
     }
 
@@ -613,31 +960,92 @@ class TarneebTracker {
 
         let gameDisplay;
         if (game.team1Players && game.team2Players) {
-            // New team format
-            const team1Won = game.team1Score > game.team2Score;
-            const team2Won = game.team2Score > game.team1Score;
+            // New team format with rounds
+            if (game.rounds && game.rounds.length > 0) {
+                const team1Wins = game.roundResults ? game.roundResults.filter(r => r.winner === 'team1').length : 0;
+                const team2Wins = game.roundResults ? game.roundResults.filter(r => r.winner === 'team2').length : 0;
+                const team1Won = game.winner === 'team1';
+                const team2Won = game.winner === 'team2';
+                const isIncomplete = game.winner === 'incomplete';
 
-            gameDisplay = `
-                <div class="game-teams">
-                    <div class="team-display team1 ${team1Won ? 'winner' : ''}">
-                        <h4>Team 1 ${team1Won ? '🏆' : ''}</h4>
-                        <div class="team-players">
-                            <span class="player-name">${game.team1Players[0]}</span>
-                            <span class="player-name">${game.team1Players[1]}</span>
+                // Round details
+                const roundsHtml = game.rounds.map((round, index) => {
+                    const roundResult = game.roundResults ? game.roundResults[index] : null;
+                    const roundWinner = roundResult ? roundResult.winner : 'draw';
+                    return `
+                        <div class="round-detail">
+                            <div class="round-number">Round ${round.number}</div>
+                            <div class="round-scores">
+                                <span class="team1-score ${roundWinner === 'team1' ? 'winner' : ''}">${round.team1Score}</span>
+                                <span class="vs">-</span>
+                                <span class="team2-score ${roundWinner === 'team2' ? 'winner' : ''}">${round.team2Score}</span>
+                            </div>
+                            <div class="round-kaboots">
+                                <span class="kaboot-count">${round.team1Kaboots || 0} kaboots</span>
+                                <span class="vs">-</span>
+                                <span class="kaboot-count">${round.team2Kaboots || 0} kaboots</span>
+                            </div>
                         </div>
-                        <div class="team-score-display">${game.team1Score}</div>
-                    </div>
-                    <div class="vs-divider">VS</div>
-                    <div class="team-display team2 ${team2Won ? 'winner' : ''}">
-                        <h4>Team 2 ${team2Won ? '🏆' : ''}</h4>
-                        <div class="team-players">
-                            <span class="player-name">${game.team2Players[0]}</span>
-                            <span class="player-name">${game.team2Players[1]}</span>
+                    `;
+                }).join('');
+
+                gameDisplay = `
+                    <div class="game-teams">
+                        <div class="team-display team1 ${team1Won ? 'winner' : ''}">
+                            <h4>Team 1 ${team1Won ? '🏆' : ''}</h4>
+                            <div class="team-players">
+                                <span class="player-name">${game.team1Players[0]}</span>
+                                <span class="player-name">${game.team1Players[1]}</span>
+                            </div>
+                            <div class="team-score-display">${team1Wins}-${team2Wins}</div>
                         </div>
-                        <div class="team-score-display">${game.team2Score}</div>
+                        <div class="vs-divider">VS</div>
+                        <div class="team-display team2 ${team2Won ? 'winner' : ''}">
+                            <h4>Team 2 ${team2Won ? '🏆' : ''}</h4>
+                            <div class="team-players">
+                                <span class="player-name">${game.team2Players[0]}</span>
+                                <span class="player-name">${game.team2Players[1]}</span>
+                            </div>
+                            <div class="team-score-display">${team2Wins}-${team1Wins}</div>
+                        </div>
                     </div>
-                </div>
-            `;
+                    <div class="rounds-breakdown">
+                        <h4>Round Details</h4>
+                        <div class="rounds-list">
+                            ${roundsHtml}
+                        </div>
+                        <div class="game-status">
+                            ${isIncomplete ? '<span class="status-badge incomplete">Incomplete</span>' : ''}
+                        </div>
+                    </div>
+                `;
+            } else {
+                // Legacy single score format
+                const team1Won = game.team1Score > game.team2Score;
+                const team2Won = game.team2Score > game.team1Score;
+
+                gameDisplay = `
+                    <div class="game-teams">
+                        <div class="team-display team1 ${team1Won ? 'winner' : ''}">
+                            <h4>Team 1 ${team1Won ? '🏆' : ''}</h4>
+                            <div class="team-players">
+                                <span class="player-name">${game.team1Players[0]}</span>
+                                <span class="player-name">${game.team1Players[1]}</span>
+                            </div>
+                            <div class="team-score-display">${game.team1Score}</div>
+                        </div>
+                        <div class="vs-divider">VS</div>
+                        <div class="team-display team2 ${team2Won ? 'winner' : ''}">
+                            <h4>Team 2 ${team2Won ? '🏆' : ''}</h4>
+                            <div class="team-players">
+                                <span class="player-name">${game.team2Players[0]}</span>
+                                <span class="player-name">${game.team2Players[1]}</span>
+                            </div>
+                            <div class="team-score-display">${game.team2Score}</div>
+                        </div>
+                    </div>
+                `;
+            }
         } else {
             // Legacy individual player format
             const players = [
@@ -662,16 +1070,38 @@ class TarneebTracker {
             <div class="game-details">
                 <h3>Game on ${new Date(game.gameDate).toLocaleDateString()}</h3>
                 ${gameDisplay}
-                ${game.photo ? `
-                    <div class="game-details-photo">
-                        <h4>Game Proof</h4>
-                        <img src="${game.photo}" alt="Game proof" class="game-photo" onclick="tracker.showEnlargedPhoto('${game.photo}')" style="cursor: pointer;" onerror="console.error('Image failed to load:', '${game.photo}')">
-                    </div>
-                ` : ''}
+                ${this.renderGameDetailsPhotos(game)}
             </div>
         `;
 
         modal.classList.add('active');
+    }
+
+    renderGameDetailsPhotos(game) {
+        if (game.photos && game.photos.length > 0) {
+            // Multiple photos
+            const photosHtml = game.photos.map(photo =>
+                `<img src="${photo}" alt="Game proof" class="game-photo" onclick="tracker.showEnlargedPhoto('${photo}')" style="cursor: pointer; max-width: 200px; max-height: 200px; border-radius: 8px; margin: 5px;" onerror="console.error('Image failed to load:', '${photo}')">`
+            ).join('');
+
+            return `
+                <div class="game-details-photo">
+                    <h4>Game Proof (${game.photos.length} photo${game.photos.length > 1 ? 's' : ''})</h4>
+                    <div style="text-align: center;">
+                        ${photosHtml}
+                    </div>
+                </div>
+            `;
+        } else if (game.photo) {
+            // Single photo (backward compatibility)
+            return `
+                <div class="game-details-photo">
+                    <h4>Game Proof</h4>
+                    <img src="${game.photo}" alt="Game proof" class="game-photo" onclick="tracker.showEnlargedPhoto('${game.photo}')" style="cursor: pointer;" onerror="console.error('Image failed to load:', '${game.photo}')">
+                </div>
+            `;
+        }
+        return '';
     }
 
     hideGameDetails() {
@@ -843,18 +1273,27 @@ class TarneebTracker {
 
     // Photo Handling
     handlePhotoUpload(event) {
-        const file = event.target.files[0];
-        if (!file) return;
+        const files = Array.from(event.target.files);
+        if (files.length === 0) {
+            document.getElementById('photoPreview').innerHTML = '';
+            return;
+        }
 
-        // Show preview immediately
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            const preview = document.getElementById('photoPreview');
-            preview.innerHTML = `
-                <img src="${e.target.result}" alt="Photo preview" style="max-width: 200px; max-height: 200px; border-radius: 8px;">
-            `;
-        };
-        reader.readAsDataURL(file);
+        // Show preview for all selected files
+        const preview = document.getElementById('photoPreview');
+        preview.innerHTML = '';
+
+        files.forEach((file, index) => {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = document.createElement('img');
+                img.src = e.target.result;
+                img.alt = `Photo preview ${index + 1}`;
+                img.style.cssText = 'max-width: 200px; max-height: 200px; border-radius: 8px; margin: 5px;';
+                preview.appendChild(img);
+            };
+            reader.readAsDataURL(file);
+        });
     }
 
     async uploadPhoto(file) {
@@ -888,6 +1327,20 @@ class TarneebTracker {
             this.showNotification('Photo upload failed. Please try again.', 'error');
             return null;
         }
+    }
+
+    async uploadMultiplePhotos(files) {
+        const uploadPromises = files.map(file => this.uploadPhoto(file));
+        const results = await Promise.all(uploadPromises);
+
+        // Filter out null results (failed uploads)
+        const successfulUploads = results.filter(url => url !== null);
+
+        if (successfulUploads.length > 0) {
+            this.showNotification(`${successfulUploads.length} photo(s) uploaded successfully!`, 'success');
+        }
+
+        return successfulUploads;
     }
 
     // Notification system
@@ -933,6 +1386,227 @@ class TarneebTracker {
                 }
             }, 300);
         }, 5000);
+    }
+
+    // Round Management
+    initializeRounds() {
+        this.rounds = [];
+        this.setupRoundEventListeners();
+    }
+
+    setupRoundEventListeners() {
+        console.log('Setting up round event listeners');
+        // Add round button (remove existing listener first to avoid duplicates)
+        const addBtn = document.getElementById('addRoundBtn');
+        console.log('Add round button found:', !!addBtn);
+        if (addBtn) {
+            // Remove any existing event listeners
+            addBtn.replaceWith(addBtn.cloneNode(true));
+            // Add new event listener
+            document.getElementById('addRoundBtn').addEventListener('click', () => {
+                console.log('Add round button clicked');
+                this.addRound();
+            });
+        } else {
+            console.error('Add round button not found!');
+        }
+    }
+
+    setupRoundScoreListeners() {
+        // Add event listeners to all round score and kaboot inputs
+        const inputs = document.querySelectorAll('.round-score, .round-kaboot');
+        inputs.forEach(input => {
+            input.addEventListener('input', (e) => {
+                const roundId = e.target.dataset.roundId;
+                const team = e.target.dataset.team;
+                const value = parseInt(e.target.value) || 0;
+
+                if (e.target.dataset.type === 'score') {
+                    this.updateRoundScore(roundId, team, value);
+                } else if (e.target.dataset.type === 'kaboot') {
+                    this.updateRoundKaboot(roundId, team, value);
+                }
+            });
+        });
+    }
+
+    addRound() {
+        console.log('Adding round, current rounds:', this.rounds.length);
+
+        if (this.rounds.length >= 3) {
+            this.showNotification('Maximum 3 rounds allowed', 'warning');
+            return;
+        }
+
+        const roundNumber = this.rounds.length + 1;
+        const roundId = `round_${Date.now()}`;
+
+        const round = {
+            id: roundId,
+            number: roundNumber,
+            team1Score: 0,
+            team2Score: 0,
+            team1Kaboots: 0,
+            team2Kaboots: 0
+        };
+
+        this.rounds.push(round);
+        console.log('Round added, total rounds:', this.rounds.length);
+        this.renderRounds();
+        this.updateRoundResults();
+    }
+
+    removeRound(roundId) {
+        this.rounds = this.rounds.filter(round => round.id !== roundId);
+        this.renumberRounds();
+        this.renderRounds();
+        this.updateRoundResults();
+    }
+
+    renumberRounds() {
+        this.rounds.forEach((round, index) => {
+            round.number = index + 1;
+        });
+    }
+
+    renderRounds() {
+        console.log('Rendering rounds:', this.rounds.length);
+        const container = document.getElementById('roundsContainer');
+        if (!container) {
+            console.error('roundsContainer not found!');
+            return;
+        }
+
+        container.innerHTML = '';
+
+        this.rounds.forEach(round => {
+            const roundElement = this.createRoundElement(round);
+            container.appendChild(roundElement);
+        });
+
+        // Add event listeners to score inputs
+        this.setupRoundScoreListeners();
+
+        // Update add button state
+        const addBtn = document.getElementById('addRoundBtn');
+        if (addBtn) {
+            addBtn.disabled = this.rounds.length >= 3;
+            addBtn.textContent = this.rounds.length >= 3 ? 'Max Rounds' : '+ Add Round';
+        } else {
+            console.error('addRoundBtn not found!');
+        }
+    }
+
+    createRoundElement(round) {
+        const div = document.createElement('div');
+        div.className = 'round-item';
+        div.innerHTML = `
+            <div class="round-header">
+                <h4 class="round-title">Round ${round.number}</h4>
+                <button type="button" class="remove-round" onclick="tracker.removeRound('${round.id}')">Remove</button>
+            </div>
+            <div class="round-scores">
+                <div class="round-score-input">
+                    <label>Team 1 Score</label>
+                    <input type="number" 
+                           class="round-score" 
+                           data-round-id="${round.id}" 
+                           data-team="1" 
+                           data-type="score"
+                           value="${round.team1Score}">
+                    <label class="kaboot-label">Kaboots</label>
+                    <input type="number" 
+                           class="round-kaboot" 
+                           data-round-id="${round.id}" 
+                           data-team="1" 
+                           data-type="kaboot"
+                           value="${round.team1Kaboots}"
+                           min="0">
+                </div>
+                <div class="round-vs">VS</div>
+                <div class="round-score-input">
+                    <label>Team 2 Score</label>
+                    <input type="number" 
+                           class="round-score" 
+                           data-round-id="${round.id}" 
+                           data-team="2" 
+                           data-type="score"
+                           value="${round.team2Score}">
+                    <label class="kaboot-label">Kaboots</label>
+                    <input type="number" 
+                           class="round-kaboot" 
+                           data-round-id="${round.id}" 
+                           data-team="2" 
+                           data-type="kaboot"
+                           value="${round.team2Kaboots}"
+                           min="0">
+                </div>
+            </div>
+            <div class="round-result" id="result_${round.id}"></div>
+        `;
+
+        // Add event listeners for score and kaboot changes
+        const scoreInputs = div.querySelectorAll('.round-score, .round-kaboot');
+        scoreInputs.forEach(input => {
+            input.addEventListener('input', () => {
+                const value = parseInt(input.value) || 0;
+                if (input.dataset.type === 'score') {
+                    this.updateRoundScore(round.id, input.dataset.team, value);
+                } else if (input.dataset.type === 'kaboot') {
+                    this.updateRoundKaboot(round.id, input.dataset.team, value);
+                }
+            });
+        });
+
+        return div;
+    }
+
+    updateRoundScore(roundId, team, score) {
+        const round = this.rounds.find(r => r.id === roundId);
+        if (round) {
+            if (team === '1') {
+                round.team1Score = score;
+            } else {
+                round.team2Score = score;
+            }
+            this.updateRoundResults();
+        }
+    }
+
+    updateRoundKaboot(roundId, team, kaboots) {
+        const round = this.rounds.find(r => r.id === roundId);
+        if (round) {
+            if (team === '1') {
+                round.team1Kaboots = kaboots;
+            } else {
+                round.team2Kaboots = kaboots;
+            }
+            this.updateRoundResults();
+        }
+    }
+
+    updateRoundResults() {
+        this.rounds.forEach(round => {
+            const resultDiv = document.getElementById(`result_${round.id}`);
+            if (resultDiv) {
+                let result = '';
+                let className = '';
+
+                if (round.team1Score > round.team2Score) {
+                    result = 'Team 1 Wins';
+                    className = 'team1-win';
+                } else if (round.team2Score > round.team1Score) {
+                    result = 'Team 2 Wins';
+                    className = 'team2-win';
+                } else if (round.team1Score === round.team2Score) {
+                    result = 'Draw';
+                    className = 'draw';
+                }
+
+                resultDiv.textContent = result;
+                resultDiv.className = `round-result ${className}`;
+            }
+        });
     }
 
     // Event Listeners
@@ -998,7 +1672,7 @@ class TarneebTracker {
         });
 
         // Photo upload
-        document.getElementById('gamePhoto').addEventListener('change', (e) => {
+        document.getElementById('gamePhotos').addEventListener('change', (e) => {
             this.handlePhotoUpload(e);
         });
 
@@ -1054,8 +1728,14 @@ class TarneebTracker {
             return;
         }
 
+        // Validate rounds
+        if (this.rounds.length === 0) {
+            alert('Please add at least one round.');
+            return;
+        }
+
         const formData = new FormData(document.getElementById('gameForm'));
-        const photoFile = document.getElementById('gamePhoto').files[0];
+        const photoFiles = Array.from(document.getElementById('gamePhotos').files);
 
         const gameData = {
             team1Players: [
@@ -1066,18 +1746,27 @@ class TarneebTracker {
                 this.normalizePlayerName(formData.get('team2Player1')),
                 this.normalizePlayerName(formData.get('team2Player2'))
             ],
-            team1Score: parseInt(formData.get('team1Score')),
-            team2Score: parseInt(formData.get('team2Score')),
+            rounds: this.rounds.map(round => ({
+                number: round.number,
+                team1Score: round.team1Score,
+                team2Score: round.team2Score,
+                team1Kaboots: round.team1Kaboots,
+                team2Kaboots: round.team2Kaboots
+            })),
             gameDate: formData.get('gameDate')
         };
 
-        // Handle photo upload
-        if (photoFile) {
-            const photoUrl = await this.uploadPhoto(photoFile);
-            if (photoUrl) {
-                gameData.photo = photoUrl;
+        // Handle multiple photo uploads
+        if (photoFiles.length > 0) {
+            const photoUrls = await this.uploadMultiplePhotos(photoFiles);
+            if (photoUrls.length > 0) {
+                gameData.photos = photoUrls;
+                // Keep backward compatibility with single photo
+                if (photoUrls.length === 1) {
+                    gameData.photo = photoUrls[0];
+                }
             } else {
-                alert('Failed to upload photo. Game will be saved without photo.');
+                alert('Failed to upload photos. Game will be saved without photos.');
             }
         }
 

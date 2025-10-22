@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Win Logic Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        .test-case {
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        .result {
+            font-weight: bold;
+            margin-left: 10px;
+        }
+
+        .win {
+            color: green;
+        }
+
+        .loss {
+            color: red;
+        }
+
+        .draw {
+            color: orange;
+        }
+
+        .incomplete {
+            color: blue;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Tarneeb Win Logic Test</h1>
+    <div id="testResults"></div>
+
+    <script>
+        // Copy of the win logic from script.js
+        function calculateGameWinner(rounds) {
+            if (!rounds || rounds.length === 0) return null;
+
+            let team1Wins = 0;
+            let team2Wins = 0;
+            let draws = 0;
+
+            rounds.forEach(round => {
+                if (round.team1Score > round.team2Score) {
+                    team1Wins++;
+                } else if (round.team2Score > round.team1Score) {
+                    team2Wins++;
+                } else {
+                    draws++;
+                }
+            });
+
+            // Complete wins: 2-0 or 2-1 (team has 2+ wins)
+            if (team1Wins >= 2) return 'team1';
+            if (team2Wins >= 2) return 'team2';
+
+            // Incomplete wins: 1-0 (team ahead but not 2 wins)
+            if (team1Wins === 1 && team2Wins === 0) return 'incomplete_team1_win';
+            if (team2Wins === 1 && team1Wins === 0) return 'incomplete_team2_win';
+
+            // Incomplete draws: 1-1 (both teams won one round, but not 2 wins)
+            if (team1Wins === 1 && team2Wins === 1) return 'incomplete_draw';
+
+            // All other cases are incomplete
+            return 'incomplete';
+        }
+
+        // Test cases
+        const testCases = [
+            // Complete wins
+            { name: "Team 1 wins 2-0", rounds: [{ team1Score: 1, team2Score: 0 }, { team1Score: 1, team2Score: 0 }] },
+            { name: "Team 1 wins 2-1", rounds: [{ team1Score: 1, team2Score: 0 }, { team1Score: 0, team2Score: 1 }, { team1Score: 1, team2Score: 0 }] },
+            { name: "Team 2 wins 2-0", rounds: [{ team1Score: 0, team2Score: 1 }, { team1Score: 0, team2Score: 1 }] },
+            { name: "Team 2 wins 2-1", rounds: [{ team1Score: 0, team2Score: 1 }, { team1Score: 1, team2Score: 0 }, { team1Score: 0, team2Score: 1 }] },
+
+            // Incomplete scenarios with specific outcomes
+            { name: "Incomplete Team 1 Win (1-0)", rounds: [{ team1Score: 1, team2Score: 0 }] },
+            { name: "Incomplete Team 2 Win (0-1)", rounds: [{ team1Score: 0, team2Score: 1 }] },
+            { name: "Incomplete Draw (1-1)", rounds: [{ team1Score: 1, team2Score: 0 }, { team1Score: 0, team2Score: 1 }] },
+            { name: "Incomplete (0-0)", rounds: [{ team1Score: 0, team2Score: 0 }] },
+            { name: "Incomplete (1-0-0)", rounds: [{ team1Score: 1, team2Score: 0 }, { team1Score: 0, team2Score: 0 }] },
+            { name: "Empty rounds", rounds: [] }
+        ];
+
+        function runTests() {
+            const container = document.getElementById('testResults');
+
+            testCases.forEach(testCase => {
+                const result = calculateGameWinner(testCase.rounds);
+                const div = document.createElement('div');
+                div.className = 'test-case';
+
+                let resultText = '';
+                let resultClass = '';
+
+                switch (result) {
+                    case 'team1':
+                        resultText = 'Team 1 WINS (Complete)';
+                        resultClass = 'win';
+                        break;
+                    case 'team2':
+                        resultText = 'Team 2 WINS (Complete)';
+                        resultClass = 'win';
+                        break;
+                    case 'incomplete_team1_win':
+                        resultText = 'Team 1 WINS (Incomplete)';
+                        resultClass = 'win';
+                        break;
+                    case 'incomplete_team2_win':
+                        resultText = 'Team 2 WINS (Incomplete)';
+                        resultClass = 'win';
+                        break;
+                    case 'incomplete_draw':
+                        resultText = 'DRAW (Incomplete)';
+                        resultClass = 'draw';
+                        break;
+                    case 'incomplete':
+                        resultText = 'INCOMPLETE';
+                        resultClass = 'incomplete';
+                        break;
+                    default:
+                        resultText = 'UNKNOWN';
+                        resultClass = 'incomplete';
+                }
+
+                div.innerHTML = `
+                    <strong>${testCase.name}</strong>
+                    <span class="result ${resultClass}">${resultText}</span>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        // Run tests when page loads
+        runTests();
+    </script>
+</body>
+
+</html>
