@@ -1891,7 +1891,6 @@ window.tracker = tracker; // Make it globally available
 
 // Global function for photo enlargement
 function showPhoto(photoSrc) {
-    console.log('showPhoto called with:', photoSrc);
     if (tracker && tracker.showEnlargedPhoto) {
         tracker.showEnlargedPhoto(photoSrc);
     } else {
