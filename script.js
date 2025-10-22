@@ -7,6 +7,7 @@ class TarneebTracker {
         this.editingGameId = null;
         this.apiBase = 'api.php';
         this.config = null;
+        this.offlineWarningShown = false;
         this.frequentPlayers = [
             'Ali', 'Amir', 'Bassel', 'Brittany', 'Christina', 'Hesham',
             'Joseph', 'Osama', 'Raquel', 'Youssef', 'Zena'
@@ -14,7 +15,6 @@ class TarneebTracker {
 
         this.initializeEventListeners();
         this.loadConfig();
-        this.testAPI();
     }
 
     async loadConfig() {
@@ -156,8 +156,11 @@ class TarneebTracker {
             this.updateStats();
             this.renderGames();
 
-            // Show user-friendly error message
-            this.showNotification('Using offline mode. Data may not be synced.', 'warning');
+            // Show user-friendly error message (only once)
+            if (!this.offlineWarningShown) {
+                this.showNotification('Using offline mode. Data may not be synced.', 'warning');
+                this.offlineWarningShown = true;
+            }
         }
     }
 
