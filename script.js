@@ -142,6 +142,7 @@ class TarneebTracker {
 
     // Data Management
     async loadGames() {
+        console.log('Loading games...');
         try {
             const response = await fetch(`${this.apiBase}?action=games&v=${Date.now()}`);
 
@@ -151,6 +152,7 @@ class TarneebTracker {
 
             const data = await response.json();
             this.games = data.games || [];
+            console.log('Games loaded from API:', this.games.length);
             this.updateStats();
             this.renderGames();
         } catch (error) {
@@ -158,6 +160,7 @@ class TarneebTracker {
             // Fallback to localStorage for offline mode
             const games = localStorage.getItem('tarneeb_games');
             this.games = games ? JSON.parse(games) : [];
+            console.log('Games loaded from localStorage:', this.games.length);
             this.updateStats();
             this.renderGames();
         }
@@ -1886,10 +1889,16 @@ class TarneebTracker {
 }
 
 // Initialize the application
-const tracker = new TarneebTracker();
+let tracker;
 
-// Set today's date as default
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('DOM loaded, initializing tracker...');
+    // Initialize tracker after DOM is ready
+    tracker = new TarneebTracker();
+    window.tracker = tracker; // Make it globally available
+    console.log('Tracker initialized and available globally');
+
+    // Set today's date as default
     const today = new Date().toISOString().split('T')[0];
     const gameDateInput = document.getElementById('gameDate');
     if (gameDateInput) {
