@@ -142,9 +142,25 @@ class TarneebTracker {
 
     // Data Management
     async loadGames() {
+        // Prevent multiple simultaneous calls
+        if (this.loadingGames) {
+            console.log('Games already loading, skipping...');
+            return;
+        }
+
+        this.loadingGames = true;
         console.log('Loading games...');
+
         try {
-            const response = await fetch(`${this.apiBase}?action=games&v=${Date.now()}`);
+            // Add timeout to prevent hanging requests
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+
+            const response = await fetch(`${this.apiBase}?action=games&v=${Date.now()}`, {
+                signal: controller.signal
+            });
+
+            clearTimeout(timeoutId);
 
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
@@ -163,18 +179,36 @@ class TarneebTracker {
             console.log('Games loaded from localStorage:', this.games.length);
             this.updateStats();
             this.renderGames();
+        } finally {
+            this.loadingGames = false;
         }
     }
 
     async saveGames() {
+        // Prevent multiple simultaneous calls
+        if (this.savingGames) {
+            console.log('Games already saving, skipping...');
+            return;
+        }
+
+        this.savingGames = true;
+        console.log('Saving games...');
+
         try {
+            // Add timeout to prevent hanging requests
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+
             const response = await fetch(`${this.apiBase}?action=save&v=${Date.now()}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ games: this.games })
+                body: JSON.stringify({ games: this.games }),
+                signal: controller.signal
             });
+
+            clearTimeout(timeoutId);
 
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
@@ -196,6 +230,8 @@ class TarneebTracker {
             // Fallback to localStorage
             localStorage.setItem('tarneeb_games', JSON.stringify(this.games));
             this.showNotification('Saved locally. Server unavailable.', 'warning');
+        } finally {
+            this.savingGames = false;
         }
     }
 
@@ -838,7 +874,7 @@ class TarneebTracker {
         if (game.photos && game.photos.length > 0) {
             // Multiple photos
             const photosHtml = game.photos.map(photo =>
-                `<img src="${photo}" alt="Game proof" class="game-photo" style="max-width: 100px; max-height: 100px; border-radius: 8px; margin: 2px; cursor: pointer;" onclick="tracker.showEnlargedPhoto('${photo}')" onerror="console.error('Image failed to load:', '${photo}')">`
+                `<img src="${photo}" alt="Game proof" class="game-photo" style="max-width: 100px; max-height: 100px; border-radius: 8px; margin: 2px; cursor: pointer;" onclick="window.tracker.showEnlargedPhoto('${photo}')" onerror="console.error('Image failed to load:', '${photo}')">`
             ).join('');
 
             return `
@@ -850,7 +886,7 @@ class TarneebTracker {
             // Single photo (backward compatibility)
             return `
                 <div style="margin-top: 15px; text-align: center;">
-                    <img src="${game.photo}" alt="Game proof" class="game-photo" style="max-width: 100px; max-height: 100px; border-radius: 8px;" onclick="tracker.showEnlargedPhoto('${game.photo}')" onerror="console.error('Image failed to load:', '${game.photo}')">
+                    <img src="${game.photo}" alt="Game proof" class="game-photo" style="max-width: 100px; max-height: 100px; border-radius: 8px;" onclick="window.tracker.showEnlargedPhoto('${game.photo}')" onerror="console.error('Image failed to load:', '${game.photo}')">
                 </div>
             `;
         }
@@ -1081,7 +1117,7 @@ class TarneebTracker {
         if (game.photos && game.photos.length > 0) {
             // Multiple photos
             const photosHtml = game.photos.map(photo =>
-                `<img src="${photo}" alt="Game proof" class="game-photo" onclick="tracker.showEnlargedPhoto('${photo}')" style="cursor: pointer; max-width: 200px; max-height: 200px; border-radius: 8px; margin: 5px;" onerror="console.error('Image failed to load:', '${photo}')">`
+                `<img src="${photo}" alt="Game proof" class="game-photo" onclick="window.tracker.showEnlargedPhoto('${photo}')" style="cursor: pointer; max-width: 200px; max-height: 200px; border-radius: 8px; margin: 5px;" onerror="console.error('Image failed to load:', '${photo}')">`
             ).join('');
 
             return `
@@ -1097,7 +1133,7 @@ class TarneebTracker {
             return `
                 <div class="game-details-photo">
                     <h4>Game Proof</h4>
-                    <img src="${game.photo}" alt="Game proof" class="game-photo" onclick="tracker.showEnlargedPhoto('${game.photo}')" style="cursor: pointer;" onerror="console.error('Image failed to load:', '${game.photo}')">
+                    <img src="${game.photo}" alt="Game proof" class="game-photo" onclick="window.tracker.showEnlargedPhoto('${game.photo}')" style="cursor: pointer;" onerror="console.error('Image failed to load:', '${game.photo}')">
                 </div>
             `;
         }
@@ -1893,6 +1929,16 @@ let tracker;
 
 document.addEventListener('DOMContentLoaded', () => {
     console.log('DOM loaded, initializing tracker...');
+
+    // Chrome-specific refresh protection
+    if (window.performance && window.performance.navigation.type === 1) {
+        console.log('Page was refreshed, clearing any problematic state...');
+        // Clear any existing state that might cause issues
+        if (window.tarneebTrackerInitialized) {
+            delete window.tarneebTrackerInitialized;
+        }
+    }
+
     // Initialize tracker after DOM is ready
     tracker = new TarneebTracker();
     window.tracker = tracker; // Make it globally available
