@@ -3,6 +3,11 @@
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
+// Check PHP version
+if (version_compare(PHP_VERSION, '5.6.0', '<')) {
+    die(json_encode(['error' => 'PHP 5.6 or higher required. Current version: ' . PHP_VERSION]));
+}
+
 // Disable browser caching
 header('Cache-Control: no-cache, no-store, must-revalidate');
 header('Pragma: no-cache');
@@ -34,7 +39,7 @@ function loadGames() {
         if (file_exists($dataFile)) {
             $content = file_get_contents($dataFile);
             $data = json_decode($content, true);
-            if (json_last_error() === JSON_ERROR_NONE) {
+            if (json_last_error() == 0) {
                 return $data;
             } else {
                 logError("JSON decode error: " . json_last_error_msg());
@@ -140,7 +145,7 @@ switch ($method) {
         if ($action === 'save') {
             try {
                 $input = json_decode(file_get_contents('php://input'), true);
-                if (json_last_error() !== JSON_ERROR_NONE) {
+                if (json_last_error() != 0) {
                     logError("Invalid JSON input: " . json_last_error_msg());
                     echo json_encode(['success' => false, 'message' => 'Invalid JSON data']);
                     break;
