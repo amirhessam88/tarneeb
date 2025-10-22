@@ -32,6 +32,9 @@ body {
 .header-logo {
     width: 40px;
     height: 40px;
+    max-width: 40px;
+    max-height: 40px;
+    object-fit: contain;
 }
 
 .admin-controls {
@@ -500,6 +503,16 @@ body {
 .game-photo {
     cursor: pointer;
     transition: transform 0.3s ease;
+    max-width: 100%;
+    height: auto;
+    object-fit: contain;
+}
+
+/* General image sizing rules */
+img {
+    max-width: 100%;
+    height: auto;
+    object-fit: contain;
 }
 
 .game-photo:hover {
@@ -1436,6 +1449,9 @@ body {
 .footer-logo {
     height: 16px;
     width: auto;
+    max-height: 16px;
+    max-width: 100px;
+    object-fit: contain;
     opacity: 0.8;
     transition: opacity 0.3s ease;
 }
