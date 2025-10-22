@@ -24,14 +24,17 @@ class TarneebTracker {
 
     async loadConfig() {
         try {
+            console.log('Loading config...');
             const response = await fetch(`assets/config.json?v=${Date.now()}`);
             this.config = await response.json();
+            console.log('Config loaded successfully:', this.config);
             this.checkAuth();
             this.loadGames();
         } catch (error) {
             console.error('Error loading config:', error);
             // Fallback to hardcoded credentials
             this.config = { admin: { username: 'rhc', password: 'rhc' } };
+            console.log('Using fallback config:', this.config);
             this.checkAuth();
             this.loadGames();
         }
@@ -48,14 +51,19 @@ class TarneebTracker {
     }
 
     login(username, password) {
+        console.log('Login attempt:', { username, password });
+        console.log('Config loaded:', this.config);
+
         // Simple authentication - in production, use proper authentication
         if (this.config && username === this.config.admin.username && password === this.config.admin.password) {
+            console.log('Login successful');
             this.currentUser = { username, loginTime: new Date().toISOString() };
             localStorage.setItem('tarneeb_user', JSON.stringify(this.currentUser));
             this.showAdminControls();
             this.hideLoginModal();
             return true;
         }
+        console.log('Login failed - invalid credentials');
         return false;
     }
 
@@ -95,7 +103,11 @@ class TarneebTracker {
     }
 
     hideLoginModal() {
-        document.getElementById('loginModal').classList.remove('active');
+        const modal = document.getElementById('loginModal');
+        if (modal) {
+            modal.classList.remove('active');
+            modal.style.display = 'none';
+        }
     }
 
     // Test API connectivity
@@ -1881,6 +1893,7 @@ class TarneebTracker {
 
 // Initialize the application
 const tracker = new TarneebTracker();
+window.tracker = tracker; // Make it globally available
 
 // Set today's date as default
 document.addEventListener('DOMContentLoaded', () => {
