@@ -35,9 +35,12 @@ jobs:
             #  ---  Deploy files tarneeb.amirhessam.com  ---
             #----------------------------------------------
             - name: Deploy Website
-              uses: SamKirkland/FTP-Deploy-Action@4.3.0
+              uses: SamKirkland/FTP-Deploy-Action@4.3.6
               with:
                   server: ${{ secrets.FTP_SERVER }}
                   username: ${{ secrets.FTP_USERNAME }}
                   password: ${{ secrets.FTP_PASSWORD }}
+                  protocol: ftps
+                  port: 21
+                  timeout: 60000
                   local-dir: ./
