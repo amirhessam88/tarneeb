@@ -223,6 +223,30 @@
 
     <script src="script.js"></script>
 
+    <!-- Photo Test -->
+    <div
+        style="position: fixed; bottom: 20px; right: 20px; background: white; padding: 10px; border: 2px solid blue; z-index: 9999;">
+        <img src="assets/favicon.png" alt="Test Photo" class="game-photo"
+            style="width: 50px; height: 50px; cursor: pointer;">
+        <div style="font-size: 10px; color: blue;">Click Photo</div>
+        <button onclick="testPhoto()"
+            style="padding: 5px; margin-top: 5px;">Test Photo</button>
+    </div>
+
+    <script>
+        function testPhoto() {
+            console.log('Testing photo enlargement...');
+            console.log('showPhoto function:', typeof showPhoto);
+            console.log('tracker:', typeof tracker);
+            console.log('tracker.showEnlargedPhoto:', typeof tracker?.showEnlargedPhoto);
+
+            if (typeof showPhoto === 'function') {
+                showPhoto('assets/favicon.png');
+            } else {
+                console.error('showPhoto function not available');
+            }
+        }
+    </script>
 
 </body>
 
