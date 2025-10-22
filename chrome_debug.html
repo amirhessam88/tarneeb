@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chrome Debug - Tarneeb</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        .test {
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        .success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+        }
+
+        #results {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>🔍 Chrome Debug Tool</h1>
+    <p>This will help identify what's not working in Chrome.</p>
+
+    <button onclick="runAllTests()">Run All Tests</button>
+    <button onclick="clearResults()">Clear Results</button>
+    <button onclick="testAdminButton()">Test Admin Button</button>
+    <button onclick="testModal()">Test Modal</button>
+
+    <div id="results"></div>
+
+    <script>
+        function addResult(message, type = 'info') {
+            const div = document.createElement('div');
+            div.className = `test ${type}`;
+            div.innerHTML = message;
+            document.getElementById('results').appendChild(div);
+        }
+
+        function clearResults() {
+            document.getElementById('results').innerHTML = '';
+        }
+
+        function runAllTests() {
+            clearResults();
+            addResult('<h3>🔍 Chrome Compatibility Tests</h3>', 'info');
+
+            testBasicJavaScript();
+            testDOMReady();
+            testScriptLoading();
+            testTrackerInitialization();
+            testAdminButton();
+            testModal();
+            testAPI();
+        }
+
+        function testBasicJavaScript() {
+            addResult('<h4>1. Basic JavaScript</h4>', 'info');
+
+            try {
+                addResult('✅ JavaScript is working', 'success');
+                addResult(`✅ Console available: ${typeof console !== 'undefined'}`, 'success');
+                addResult(`✅ Document ready state: ${document.readyState}`, 'info');
+            } catch (error) {
+                addResult(`❌ JavaScript error: ${error.message}`, 'error');
+            }
+        }
+
+        function testDOMReady() {
+            addResult('<h4>2. DOM Ready State</h4>', 'info');
+
+            addResult(`✅ Document ready state: ${document.readyState}`, 'success');
+            addResult(`✅ Body element exists: ${!!document.body}`, 'success');
+            addResult(`✅ Head element exists: ${!!document.head}`, 'success');
+        }
+
+        function testScriptLoading() {
+            addResult('<h4>3. Script Loading</h4>', 'info');
+
+            const scripts = document.querySelectorAll('script[src]');
+            addResult(`✅ Scripts found: ${scripts.length}`, 'success');
+
+            scripts.forEach((script, index) => {
+                addResult(`Script ${index + 1}: ${script.src}`, 'info');
+            });
+        }
+
+        function testTrackerInitialization() {
+            addResult('<h4>4. Tracker Initialization</h4>', 'info');
+
+            if (typeof TarneebTracker !== 'undefined') {
+                addResult('✅ TarneebTracker class found', 'success');
+
+                try {
+                    if (window.tracker) {
+                        addResult('✅ Tracker instance exists', 'success');
+                        addResult(`✅ Tracker methods: ${Object.getOwnPropertyNames(Object.getPrototypeOf(window.tracker)).length}`, 'success');
+                    } else {
+                        addResult('⚠️ Tracker instance not found', 'warning');
+                    }
+                } catch (error) {
+                    addResult(`❌ Tracker error: ${error.message}`, 'error');
+                }
+            } else {
+                addResult('❌ TarneebTracker class not found', 'error');
+            }
+        }
+
+        function testAdminButton() {
+            addResult('<h4>5. Admin Button Test</h4>', 'info');
+
+            const adminBtn = document.getElementById('adminLoginBtn');
+            if (adminBtn) {
+                addResult('✅ Admin button found', 'success');
+                addResult(`✅ Button onclick: ${!!adminBtn.onclick}`, 'success');
+                addResult(`✅ Button visible: ${adminBtn.offsetWidth > 0}`, 'success');
+
+                // Test click
+                try {
+                    adminBtn.click();
+                    addResult('✅ Button click executed', 'success');
+                } catch (error) {
+                    addResult(`❌ Button click error: ${error.message}`, 'error');
+                }
+            } else {
+                addResult('❌ Admin button not found', 'error');
+            }
+        }
+
+        function testModal() {
+            addResult('<h4>6. Modal Test</h4>', 'info');
+
+            const modal = document.getElementById('loginModal');
+            if (modal) {
+                addResult('✅ Login modal found', 'success');
+                addResult(`✅ Modal classes: ${modal.className}`, 'info');
+                addResult(`✅ Modal display: ${getComputedStyle(modal).display}`, 'info');
+
+                // Test showing modal
+                if (window.tracker && typeof window.tracker.showLoginModal === 'function') {
+                    try {
+                        window.tracker.showLoginModal();
+                        addResult('✅ Modal show function called', 'success');
+                    } catch (error) {
+                        addResult(`❌ Modal show error: ${error.message}`, 'error');
+                    }
+                } else {
+                    addResult('⚠️ Tracker showLoginModal not available', 'warning');
+                }
+            } else {
+                addResult('❌ Login modal not found', 'error');
+            }
+        }
+
+        function testAPI() {
+            addResult('<h4>7. API Test</h4>', 'info');
+
+            fetch('api.php?action=debug')
+                .then(response => {
+                    addResult(`✅ API response status: ${response.status}`, 'success');
+                    return response.json();
+                })
+                .then(data => {
+                    addResult(`✅ API data received: ${JSON.stringify(data).substring(0, 100)}...`, 'success');
+                })
+                .catch(error => {
+                    addResult(`❌ API error: ${error.message}`, 'error');
+                });
+        }
+
+        // Auto-run tests on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            addResult('<h3>🚀 Auto-running tests...</h3>', 'info');
+            setTimeout(runAllTests, 1000);
+        });
+    </script>
+
+    <!-- Load the main script -->
+    <script src="script.js"></script>
+</body>
+
+</html>

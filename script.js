@@ -142,20 +142,15 @@ class TarneebTracker {
 
     // Data Management
     async loadGames() {
-        // Prevent multiple simultaneous API calls
-        if (this.apiCallInProgress) {
-            console.log('API call already in progress, skipping...');
-            return;
-        }
+        // Skip API calls completely to prevent refresh loops
+        console.log('Skipping API calls to prevent refresh loops');
 
-        // Additional Chrome-specific protection
-        if (window.tarneebApiCallInProgress) {
-            console.log('Global API call already in progress, skipping...');
-            return;
-        }
-
-        this.apiCallInProgress = true;
-        window.tarneebApiCallInProgress = true;
+        // Load from localStorage only
+        const games = localStorage.getItem('tarneeb_games');
+        this.games = games ? JSON.parse(games) : [];
+        this.updateStats();
+        this.renderGames();
+        return;
 
         try {
             console.log('Attempting to load games from:', `${this.apiBase}?action=games&v=${Date.now()}`);
@@ -215,14 +210,11 @@ class TarneebTracker {
     }
 
     async saveGames() {
-        // Prevent multiple simultaneous save calls
-        if (this.apiCallInProgress) {
-            console.log('Save call already in progress, saving to localStorage only...');
-            localStorage.setItem('tarneeb_games', JSON.stringify(this.games));
-            return;
-        }
-
-        this.apiCallInProgress = true;
+        // Save to localStorage only to prevent refresh loops
+        console.log('Saving to localStorage only to prevent refresh loops');
+        localStorage.setItem('tarneeb_games', JSON.stringify(this.games));
+        this.showNotification('Game saved locally!', 'success');
+        return;
 
         try {
             const response = await fetch(`${this.apiBase}?action=save&v=${Date.now()}`, {
@@ -1948,36 +1940,45 @@ class TarneebTracker {
     }
 }
 
-// Initialize the application with Chrome-specific handling
+// Initialize the application with aggressive Chrome refresh protection
 let tracker;
 
-// Prevent multiple initializations and Chrome refresh loops
-(function () {
-    // Check if already initialized
+// Stop any existing refresh loops immediately
+if (window.tarneebRefreshProtection) {
+    console.log('Refresh protection already active, stopping...');
+    return;
+}
+window.tarneebRefreshProtection = true;
+
+// Prevent multiple initializations
+if (window.tarneebTrackerInitialized) {
+    console.log('TarneebTracker already initialized, stopping...');
+    return;
+}
+
+// Simple, single initialization
+function initializeApp() {
     if (window.tarneebTrackerInitialized) {
-        console.log('TarneebTracker already initialized, skipping...');
         return;
     }
 
-    // Mark as initializing to prevent race conditions
     window.tarneebTrackerInitialized = true;
 
-    // Chrome-specific initialization
-    function initializeTracker() {
-        if (!tracker) {
-            tracker = new TarneebTracker();
-            window.tracker = tracker; // Make tracker globally available
-            console.log('TarneebTracker initialized successfully');
-        }
+    try {
+        tracker = new TarneebTracker();
+        window.tracker = tracker;
+        console.log('TarneebTracker initialized successfully');
+    } catch (error) {
+        console.error('Error initializing tracker:', error);
     }
+}
 
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initializeTracker);
-    } else {
-        // DOM already loaded
-        initializeTracker();
-    }
-})();
+// Single initialization point
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeApp);
+} else {
+    initializeApp();
+}
 
 // Set today's date as default
 document.addEventListener('DOMContentLoaded', () => {
