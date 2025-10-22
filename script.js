@@ -1722,12 +1722,29 @@ class TarneebTracker {
 
         // Photo enlargement - use event delegation for dynamically created photos
         document.addEventListener('click', (e) => {
+            console.log('Click detected on:', e.target);
+            console.log('Target classes:', e.target.classList);
+            console.log('Has game-photo class:', e.target.classList.contains('game-photo'));
+
             if (e.target.classList.contains('game-photo')) {
                 const photoSrc = e.target.src;
                 console.log('Photo clicked:', photoSrc);
+                console.log('About to call showEnlargedPhoto');
                 this.showEnlargedPhoto(photoSrc);
             }
         });
+
+        // Test modal elements on page load
+        setTimeout(() => {
+            const modal = document.getElementById('photoModal');
+            const photo = document.getElementById('enlargedPhoto');
+            console.log('Modal element found:', !!modal);
+            console.log('Photo element found:', !!photo);
+            if (modal) {
+                console.log('Modal classes:', modal.className);
+                console.log('Modal display:', window.getComputedStyle(modal).display);
+            }
+        }, 1000);
 
         document.getElementById('cancelGame').addEventListener('click', () => {
             this.hideGameModal();
