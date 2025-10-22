@@ -223,54 +223,6 @@
 
     <script src="script.js"></script>
 
-    <script>
-        // Test if tracker is created
-        setTimeout(() => {
-            console.log('Checking tracker after 1 second...');
-            console.log('window.tracker:', window.tracker);
-            console.log('typeof window.tracker:', typeof window.tracker);
-        }, 1000);
-    </script>
-
-    <!-- Test Photo Enlargement -->
-    <div style="position: fixed; bottom: 20px; right: 20px; z-index: 9999;">
-        <img src="assets/favicon.png" alt="Test Photo"
-            style="width: 50px; height: 50px; cursor: pointer; border: 2px solid blue;"
-            onclick="testPhotoEnlargement()">
-        <div style="font-size: 10px; color: blue;">Test Photo</div>
-    </div>
-
-    <script>
-        function testPhotoEnlargement() {
-            alert('Photo clicked! JavaScript is working!');
-            console.log('Test photo clicked!');
-            console.log('Tracker available:', typeof window.tracker);
-            console.log('showEnlargedPhoto function:', typeof window.tracker?.showEnlargedPhoto);
-
-            if (window.tracker && window.tracker.showEnlargedPhoto) {
-                window.tracker.showEnlargedPhoto('assets/favicon.png');
-            } else {
-                console.error('Tracker or showEnlargedPhoto not available');
-            }
-
-            // Also test direct modal manipulation
-            const modal = document.getElementById('photoModal');
-            if (modal) {
-                console.log('Modal found, forcing display...');
-                modal.style.display = 'flex';
-                modal.style.zIndex = '99999';
-                modal.style.backgroundColor = 'rgba(255, 0, 0, 0.8)'; // Red background for testing
-                modal.style.position = 'fixed';
-                modal.style.top = '0';
-                modal.style.left = '0';
-                modal.style.width = '100%';
-                modal.style.height = '100%';
-                console.log('Modal forced to show');
-            } else {
-                console.error('Modal not found!');
-            }
-        }
-    </script>
 </body>
 
 </html>

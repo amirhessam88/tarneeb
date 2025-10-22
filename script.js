@@ -841,7 +841,7 @@ class TarneebTracker {
         if (game.photos && game.photos.length > 0) {
             // Multiple photos
             const photosHtml = game.photos.map(photo =>
-                `<img src="${photo}" alt="Game proof" class="game-photo" style="max-width: 100px; max-height: 100px; border-radius: 8px; margin: 2px; cursor: pointer;" onclick="window.tracker.showEnlargedPhoto('${photo}')" onerror="console.error('Image failed to load:', '${photo}')">`
+                `<img src="${photo}" alt="Game proof" class="game-photo" style="max-width: 100px; max-height: 100px; border-radius: 8px; margin: 2px; cursor: pointer;" onerror="console.error('Image failed to load:', '${photo}')">`
             ).join('');
 
             return `
@@ -853,7 +853,7 @@ class TarneebTracker {
             // Single photo (backward compatibility)
             return `
                 <div style="margin-top: 15px; text-align: center;">
-                    <img src="${game.photo}" alt="Game proof" class="game-photo" style="max-width: 100px; max-height: 100px; border-radius: 8px;" onclick="window.tracker.showEnlargedPhoto('${game.photo}')" onerror="console.error('Image failed to load:', '${game.photo}')">
+                    <img src="${game.photo}" alt="Game proof" class="game-photo" style="max-width: 100px; max-height: 100px; border-radius: 8px; cursor: pointer;" onerror="console.error('Image failed to load:', '${game.photo}')">
                 </div>
             `;
         }
@@ -1084,7 +1084,7 @@ class TarneebTracker {
         if (game.photos && game.photos.length > 0) {
             // Multiple photos
             const photosHtml = game.photos.map(photo =>
-                `<img src="${photo}" alt="Game proof" class="game-photo" onclick="window.tracker.showEnlargedPhoto('${photo}')" style="cursor: pointer; max-width: 200px; max-height: 200px; border-radius: 8px; margin: 5px;" onerror="console.error('Image failed to load:', '${photo}')">`
+                `<img src="${photo}" alt="Game proof" class="game-photo" style="cursor: pointer; max-width: 200px; max-height: 200px; border-radius: 8px; margin: 5px;" onerror="console.error('Image failed to load:', '${photo}')">`
             ).join('');
 
             return `
@@ -1100,7 +1100,7 @@ class TarneebTracker {
             return `
                 <div class="game-details-photo">
                     <h4>Game Proof</h4>
-                    <img src="${game.photo}" alt="Game proof" class="game-photo" onclick="window.tracker.showEnlargedPhoto('${game.photo}')" style="cursor: pointer;" onerror="console.error('Image failed to load:', '${game.photo}')">
+                    <img src="${game.photo}" alt="Game proof" class="game-photo" style="cursor: pointer;" onerror="console.error('Image failed to load:', '${game.photo}')">
                 </div>
             `;
         }
@@ -1113,18 +1113,11 @@ class TarneebTracker {
 
     // Photo Enlargement
     showEnlargedPhoto(photoSrc) {
-        console.log('showEnlargedPhoto called with:', photoSrc);
-
         const modal = document.getElementById('photoModal');
         const photo = document.getElementById('enlargedPhoto');
 
-        if (!modal) {
-            console.error('photoModal element not found');
-            return;
-        }
-
-        if (!photo) {
-            console.error('enlargedPhoto element not found');
+        if (!modal || !photo) {
+            console.error('Photo modal elements not found');
             return;
         }
 
@@ -1134,13 +1127,6 @@ class TarneebTracker {
         // Show the modal
         modal.classList.add('active');
         modal.style.display = 'flex';
-        modal.style.zIndex = '9999';
-
-        console.log('Modal should be visible now');
-        console.log('Modal classes:', modal.className);
-        console.log('Modal style display:', modal.style.display);
-        console.log('Modal z-index:', modal.style.zIndex);
-        console.log('Modal computed style:', window.getComputedStyle(modal).display);
     }
 
     hidePhotoModal() {
@@ -1726,6 +1712,15 @@ class TarneebTracker {
         // Photo modal
         document.getElementById('closePhotoModal').addEventListener('click', () => {
             this.hidePhotoModal();
+        });
+
+        // Photo enlargement - use event delegation for dynamically created photos
+        document.addEventListener('click', (e) => {
+            if (e.target.classList.contains('game-photo')) {
+                const photoSrc = e.target.src;
+                console.log('Photo clicked:', photoSrc);
+                this.showEnlargedPhoto(photoSrc);
+            }
         });
 
         document.getElementById('cancelGame').addEventListener('click', () => {
