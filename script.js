@@ -89,7 +89,17 @@ class TarneebTracker {
     async testAPI() {
         try {
             console.log('Testing API connectivity...');
+            console.log('API Base URL:', this.apiBase);
+            console.log('Full URL:', `${this.apiBase}?action=debug`);
+
             const response = await fetch(`${this.apiBase}?action=debug`);
+            console.log('Response status:', response.status);
+            console.log('Response ok:', response.ok);
+
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+
             const data = await response.json();
             console.log('API Debug info:', data);
 
@@ -102,6 +112,11 @@ class TarneebTracker {
             }
         } catch (error) {
             console.error('API test failed:', error);
+            console.error('Error details:', {
+                message: error.message,
+                name: error.name,
+                stack: error.stack
+            });
             this.showNotification('API test failed: ' + error.message, 'error');
         }
     }
