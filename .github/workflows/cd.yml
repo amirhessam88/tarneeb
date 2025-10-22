@@ -44,3 +44,6 @@ jobs:
                   port: 21
                   timeout: 60000
                   local-dir: ./
+                  exclude: |
+                      assets/data/
+                      assets/photos/
