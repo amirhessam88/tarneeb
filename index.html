@@ -21,7 +21,18 @@
             if (window.tarneebTrackerInitialized) {
                 delete window.tarneebTrackerInitialized;
             }
+            if (window.tarneebApiCallInProgress) {
+                delete window.tarneebApiCallInProgress;
+            }
         }
+
+        // Additional Chrome protection
+        window.addEventListener('beforeunload', function () {
+            // Clear any pending API calls
+            if (window.tarneebApiCallInProgress) {
+                delete window.tarneebApiCallInProgress;
+            }
+        });
     </script>
 </head>
 
@@ -35,7 +46,8 @@
                 <h1>Tarneeb Score Tracker</h1>
             </div>
             <div class="header-actions">
-                <button id="adminLoginBtn" class="btn btn-secondary">Admin
+                <button id="adminLoginBtn" class="btn btn-secondary"
+                    onclick="if(window.tracker) { window.tracker.showLoginModal(); } else { console.error('Tracker not available'); }">Admin
                     Login</button>
                 <div id="adminControls" class="admin-controls"
                     style="display: none;">
