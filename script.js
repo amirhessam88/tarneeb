@@ -1115,32 +1115,29 @@ class TarneebTracker {
     showEnlargedPhoto(photoSrc) {
         console.log('showEnlargedPhoto called with:', photoSrc);
 
-        // Use a small delay to ensure DOM is ready
-        setTimeout(() => {
-            const modal = document.getElementById('photoModal');
-            const photo = document.getElementById('enlargedPhoto');
+        const modal = document.getElementById('photoModal');
+        const photo = document.getElementById('enlargedPhoto');
 
-            if (!modal) {
-                console.error('photoModal element not found');
-                return;
-            }
+        if (!modal) {
+            console.error('photoModal element not found');
+            return;
+        }
 
-            if (!photo) {
-                console.error('enlargedPhoto element not found');
-                return;
-            }
+        if (!photo) {
+            console.error('enlargedPhoto element not found');
+            return;
+        }
 
-            // Set the photo source
-            photo.src = photoSrc;
+        // Set the photo source
+        photo.src = photoSrc;
 
-            // Show the modal
-            modal.classList.add('active');
-            modal.style.display = 'flex';
+        // Show the modal
+        modal.classList.add('active');
+        modal.style.display = 'flex';
 
-            console.log('Modal should be visible now');
-            console.log('Modal classes:', modal.className);
-            console.log('Modal style display:', modal.style.display);
-        }, 10);
+        console.log('Modal should be visible now');
+        console.log('Modal classes:', modal.className);
+        console.log('Modal style display:', modal.style.display);
     }
 
     hidePhotoModal() {
