@@ -15,12 +15,6 @@ class TarneebTracker {
             'Joseph', 'Lester', 'Osama', 'Raquel', 'Youssef', 'Zena'
         ];
 
-        // Prevent multiple initializations
-        if (window.tarneebTrackerInitialized) {
-            console.log('TarneebTracker already initialized, skipping...');
-            return;
-        }
-        window.tarneebTrackerInitialized = true;
 
         this.initializeEventListeners();
         this.loadConfig();
@@ -30,14 +24,17 @@ class TarneebTracker {
 
     async loadConfig() {
         try {
+            console.log('Loading config...');
             const response = await fetch(`assets/config.json?v=${Date.now()}`);
             this.config = await response.json();
+            console.log('Config loaded successfully:', this.config);
             this.checkAuth();
             this.loadGames();
         } catch (error) {
             console.error('Error loading config:', error);
             // Fallback to hardcoded credentials
             this.config = { admin: { username: 'rhc', password: 'rhc' } };
+            console.log('Using fallback config:', this.config);
             this.checkAuth();
             this.loadGames();
         }
@@ -54,14 +51,19 @@ class TarneebTracker {
     }
 
     login(username, password) {
+        console.log('Login attempt:', { username, password });
+        console.log('Config loaded:', this.config);
+
         // Simple authentication - in production, use proper authentication
         if (this.config && username === this.config.admin.username && password === this.config.admin.password) {
+            console.log('Login successful');
             this.currentUser = { username, loginTime: new Date().toISOString() };
             localStorage.setItem('tarneeb_user', JSON.stringify(this.currentUser));
             this.showAdminControls();
             this.hideLoginModal();
             return true;
         }
+        console.log('Login failed - invalid credentials');
         return false;
     }
 
@@ -101,7 +103,11 @@ class TarneebTracker {
     }
 
     hideLoginModal() {
-        document.getElementById('loginModal').classList.remove('active');
+        const modal = document.getElementById('loginModal');
+        if (modal) {
+            modal.classList.remove('active');
+            modal.style.display = 'none';
+        }
     }
 
     // Test API connectivity
@@ -142,25 +148,8 @@ class TarneebTracker {
 
     // Data Management
     async loadGames() {
-        // Prevent multiple simultaneous calls
-        if (this.loadingGames) {
-            console.log('Games already loading, skipping...');
-            return;
-        }
-
-        this.loadingGames = true;
-        console.log('Loading games...');
-
         try {
-            // Add timeout to prevent hanging requests
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
-
-            const response = await fetch(`${this.apiBase}?action=games&v=${Date.now()}`, {
-                signal: controller.signal
-            });
-
-            clearTimeout(timeoutId);
+            const response = await fetch(`${this.apiBase}?action=games&v=${Date.now()}`);
 
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
@@ -168,7 +157,6 @@ class TarneebTracker {
 
             const data = await response.json();
             this.games = data.games || [];
-            console.log('Games loaded from API:', this.games.length);
             this.updateStats();
             this.renderGames();
         } catch (error) {
@@ -176,39 +164,20 @@ class TarneebTracker {
             // Fallback to localStorage for offline mode
             const games = localStorage.getItem('tarneeb_games');
             this.games = games ? JSON.parse(games) : [];
-            console.log('Games loaded from localStorage:', this.games.length);
             this.updateStats();
             this.renderGames();
-        } finally {
-            this.loadingGames = false;
         }
     }
 
     async saveGames() {
-        // Prevent multiple simultaneous calls
-        if (this.savingGames) {
-            console.log('Games already saving, skipping...');
-            return;
-        }
-
-        this.savingGames = true;
-        console.log('Saving games...');
-
         try {
-            // Add timeout to prevent hanging requests
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
-
             const response = await fetch(`${this.apiBase}?action=save&v=${Date.now()}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ games: this.games }),
-                signal: controller.signal
+                body: JSON.stringify({ games: this.games })
             });
-
-            clearTimeout(timeoutId);
 
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
@@ -230,8 +199,6 @@ class TarneebTracker {
             // Fallback to localStorage
             localStorage.setItem('tarneeb_games', JSON.stringify(this.games));
             this.showNotification('Saved locally. Server unavailable.', 'warning');
-        } finally {
-            this.savingGames = false;
         }
     }
 
@@ -1925,26 +1892,11 @@ class TarneebTracker {
 }
 
 // Initialize the application
-let tracker;
+const tracker = new TarneebTracker();
+window.tracker = tracker; // Make it globally available
 
+// Set today's date as default
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('DOM loaded, initializing tracker...');
-
-    // Chrome-specific refresh protection
-    if (window.performance && window.performance.navigation.type === 1) {
-        console.log('Page was refreshed, clearing any problematic state...');
-        // Clear any existing state that might cause issues
-        if (window.tarneebTrackerInitialized) {
-            delete window.tarneebTrackerInitialized;
-        }
-    }
-
-    // Initialize tracker after DOM is ready
-    tracker = new TarneebTracker();
-    window.tracker = tracker; // Make it globally available
-    console.log('Tracker initialized and available globally');
-
-    // Set today's date as default
     const today = new Date().toISOString().split('T')[0];
     const gameDateInput = document.getElementById('gameDate');
     if (gameDateInput) {

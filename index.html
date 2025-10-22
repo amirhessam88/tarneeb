@@ -4,36 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Cache-Control"
-        content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="Expires" content="0">
-    <meta name="format-detection" content="telephone=no">
-    <meta name="mobile-web-app-capable" content="yes">
     <title>Tarneeb Score Tracker</title>
-    <link rel="stylesheet" href="styles.css?v=<?php echo time(); ?>"
-        onload="this.href='styles.css?v='+Date.now()">
+    <link rel="stylesheet" href="styles.css">
     <link rel="icon" type="image/png" href="assets/favicon.png">
-    <script>
-        // Chrome-specific fix to prevent refresh loops
-        if (window.performance && window.performance.navigation.type === 1) {
-            // Page was refreshed, clear any problematic state
-            if (window.tarneebTrackerInitialized) {
-                delete window.tarneebTrackerInitialized;
-            }
-            if (window.tarneebApiCallInProgress) {
-                delete window.tarneebApiCallInProgress;
-            }
-        }
-
-        // Additional Chrome protection
-        window.addEventListener('beforeunload', function () {
-            // Clear any pending API calls
-            if (window.tarneebApiCallInProgress) {
-                delete window.tarneebApiCallInProgress;
-            }
-        });
-    </script>
 </head>
 
 <body>
@@ -248,8 +221,7 @@
         </div>
     </div>
 
-    <script src="script.js?v=<?php echo time(); ?>"
-        onload="this.src='script.js?v='+Date.now()"></script>
+    <script src="script.js"></script>
 </body>
 
 </html>
