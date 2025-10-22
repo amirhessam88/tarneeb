@@ -223,29 +223,6 @@
 
     <script src="script.js"></script>
 
-    <!-- Simple Test -->
-    <div
-        style="position: fixed; bottom: 20px; right: 20px; background: white; padding: 10px; border: 2px solid red; z-index: 9999;">
-        <button onclick="testBasic()" style="padding: 10px;">Test Basic
-            JS</button>
-        <button onclick="testPhoto()" style="padding: 10px;">Test Photo</button>
-    </div>
-
-    <script>
-        function testBasic() {
-            alert('Basic JavaScript is working!');
-        }
-
-        function testPhoto() {
-            console.log('Testing photo enlargement...');
-            if (typeof showPhoto === 'function') {
-                console.log('showPhoto function exists');
-                showPhoto('assets/favicon.png');
-            } else {
-                console.error('showPhoto function not found');
-            }
-        }
-    </script>
 
 </body>
 
