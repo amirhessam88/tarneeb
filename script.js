@@ -692,7 +692,9 @@ class TarneebTracker {
             return;
         }
 
-        gamesList.innerHTML = this.games.map(game => this.renderGameCard(game)).join('');
+        // Sort games by date (newest first)
+        const sortedGames = this.games.sort((a, b) => new Date(b.gameDate) - new Date(a.gameDate));
+        gamesList.innerHTML = sortedGames.map(game => this.renderGameCard(game)).join('');
     }
 
     renderGameCard(game) {
