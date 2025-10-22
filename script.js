@@ -142,80 +142,28 @@ class TarneebTracker {
 
     // Data Management
     async loadGames() {
-        // Skip API calls completely to prevent refresh loops
-        console.log('Skipping API calls to prevent refresh loops');
-
-        // Load from localStorage only
-        const games = localStorage.getItem('tarneeb_games');
-        this.games = games ? JSON.parse(games) : [];
-        this.updateStats();
-        this.renderGames();
-        return;
-
         try {
-            console.log('Attempting to load games from:', `${this.apiBase}?action=games&v=${Date.now()}`);
-
-            // Add timeout for Chrome compatibility
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
-
-            const response = await fetch(`${this.apiBase}?action=games&v=${Date.now()}`, {
-                signal: controller.signal,
-                cache: 'no-cache',
-                headers: {
-                    'Cache-Control': 'no-cache, no-store, must-revalidate',
-                    'Pragma': 'no-cache',
-                    'Expires': '0'
-                }
-            });
-
-            clearTimeout(timeoutId);
-            console.log('API Response status:', response.status);
+            const response = await fetch(`${this.apiBase}?action=games&v=${Date.now()}`);
 
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
 
             const data = await response.json();
-            console.log('API Response data:', data);
-
             this.games = data.games || [];
             this.updateStats();
             this.renderGames();
-
-            console.log('Games loaded successfully:', this.games.length, 'games');
         } catch (error) {
             console.error('Error loading games:', error);
-
-            // Check if it's an abort error (timeout)
-            if (error.name === 'AbortError') {
-                console.log('API call timed out, using offline mode');
-            }
-
             // Fallback to localStorage for offline mode
             const games = localStorage.getItem('tarneeb_games');
             this.games = games ? JSON.parse(games) : [];
             this.updateStats();
             this.renderGames();
-
-            // Show user-friendly error message (only once)
-            if (!this.offlineWarningShown) {
-                this.showNotification('Using offline mode. Data may not be synced.', 'warning');
-                this.offlineWarningShown = true;
-            }
-        } finally {
-            this.apiCallInProgress = false;
-            window.tarneebApiCallInProgress = false;
         }
     }
 
     async saveGames() {
-        // Save to localStorage only to prevent refresh loops
-        console.log('Saving to localStorage only to prevent refresh loops');
-        localStorage.setItem('tarneeb_games', JSON.stringify(this.games));
-        this.showNotification('Game saved locally!', 'success');
-        return;
-
         try {
             const response = await fetch(`${this.apiBase}?action=save&v=${Date.now()}`, {
                 method: 'POST',
@@ -233,7 +181,6 @@ class TarneebTracker {
             if (result.success) {
                 // Also save to localStorage as backup
                 localStorage.setItem('tarneeb_games', JSON.stringify(this.games));
-                console.log('Games saved successfully to server');
                 this.showNotification('Game saved successfully!', 'success');
             } else {
                 console.error('Failed to save games:', result.message);
@@ -246,8 +193,6 @@ class TarneebTracker {
             // Fallback to localStorage
             localStorage.setItem('tarneeb_games', JSON.stringify(this.games));
             this.showNotification('Saved locally. Server unavailable.', 'warning');
-        } finally {
-            this.apiCallInProgress = false;
         }
     }
 
@@ -1940,45 +1885,8 @@ class TarneebTracker {
     }
 }
 
-// Initialize the application with aggressive Chrome refresh protection
-let tracker;
-
-// Stop any existing refresh loops immediately
-if (window.tarneebRefreshProtection) {
-    console.log('Refresh protection already active, stopping...');
-    return;
-}
-window.tarneebRefreshProtection = true;
-
-// Prevent multiple initializations
-if (window.tarneebTrackerInitialized) {
-    console.log('TarneebTracker already initialized, stopping...');
-    return;
-}
-
-// Simple, single initialization
-function initializeApp() {
-    if (window.tarneebTrackerInitialized) {
-        return;
-    }
-
-    window.tarneebTrackerInitialized = true;
-
-    try {
-        tracker = new TarneebTracker();
-        window.tracker = tracker;
-        console.log('TarneebTracker initialized successfully');
-    } catch (error) {
-        console.error('Error initializing tracker:', error);
-    }
-}
-
-// Single initialization point
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initializeApp);
-} else {
-    initializeApp();
-}
+// Initialize the application
+const tracker = new TarneebTracker();
 
 // Set today's date as default
 document.addEventListener('DOMContentLoaded', () => {
