@@ -1134,10 +1134,13 @@ class TarneebTracker {
         // Show the modal
         modal.classList.add('active');
         modal.style.display = 'flex';
+        modal.style.zIndex = '9999';
 
         console.log('Modal should be visible now');
         console.log('Modal classes:', modal.className);
         console.log('Modal style display:', modal.style.display);
+        console.log('Modal z-index:', modal.style.zIndex);
+        console.log('Modal computed style:', window.getComputedStyle(modal).display);
     }
 
     hidePhotoModal() {
