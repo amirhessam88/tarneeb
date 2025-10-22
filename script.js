@@ -88,10 +88,17 @@ class TarneebTracker {
     async loadGames() {
         try {
             const response = await fetch(`${this.apiBase}?action=games`);
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
             const data = await response.json();
             this.games = data.games || [];
             this.updateStats();
             this.renderGames();
+
+            console.log('Games loaded successfully:', this.games.length, 'games');
         } catch (error) {
             console.error('Error loading games:', error);
             // Fallback to localStorage for offline mode
@@ -99,6 +106,9 @@ class TarneebTracker {
             this.games = games ? JSON.parse(games) : [];
             this.updateStats();
             this.renderGames();
+
+            // Show user-friendly error message
+            this.showNotification('Using offline mode. Data may not be synced.', 'warning');
         }
     }
 
@@ -111,19 +121,28 @@ class TarneebTracker {
                 },
                 body: JSON.stringify({ games: this.games })
             });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
             const result = await response.json();
             if (result.success) {
                 // Also save to localStorage as backup
                 localStorage.setItem('tarneeb_games', JSON.stringify(this.games));
+                console.log('Games saved successfully to server');
+                this.showNotification('Game saved successfully!', 'success');
             } else {
                 console.error('Failed to save games:', result.message);
                 // Fallback to localStorage
                 localStorage.setItem('tarneeb_games', JSON.stringify(this.games));
+                this.showNotification('Saved locally. Server sync failed.', 'warning');
             }
         } catch (error) {
             console.error('Error saving games:', error);
             // Fallback to localStorage
             localStorage.setItem('tarneeb_games', JSON.stringify(this.games));
+            this.showNotification('Saved locally. Server unavailable.', 'warning');
         }
     }
 
@@ -795,18 +814,72 @@ class TarneebTracker {
                 method: 'POST',
                 body: formData
             });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
             const result = await response.json();
 
             if (result.success) {
+                console.log('Photo uploaded successfully:', result.url);
+                this.showNotification('Photo uploaded successfully!', 'success');
                 return result.url; // Return the URL path to the uploaded photo
             } else {
                 console.error('Photo upload failed:', result.message);
+                this.showNotification('Photo upload failed: ' + result.message, 'error');
                 return null;
             }
         } catch (error) {
             console.error('Error uploading photo:', error);
+            this.showNotification('Photo upload failed. Please try again.', 'error');
             return null;
         }
+    }
+
+    // Notification system
+    showNotification(message, type = 'info') {
+        // Create notification element
+        const notification = document.createElement('div');
+        notification.className = `notification notification-${type}`;
+        notification.textContent = message;
+
+        // Add styles
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 12px 20px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 500;
+            z-index: 10000;
+            max-width: 300px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            animation: slideIn 0.3s ease;
+        `;
+
+        // Set colors based on type
+        const colors = {
+            success: '#28a745',
+            warning: '#ffc107',
+            error: '#dc3545',
+            info: '#17a2b8'
+        };
+        notification.style.backgroundColor = colors[type] || colors.info;
+
+        // Add to page
+        document.body.appendChild(notification);
+
+        // Remove after 5 seconds
+        setTimeout(() => {
+            notification.style.animation = 'slideOut 0.3s ease';
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.parentNode.removeChild(notification);
+                }
+            }, 300);
+        }, 5000);
     }
 
     // Event Listeners
