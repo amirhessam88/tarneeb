@@ -229,7 +229,39 @@
         <img src="assets/favicon.png" alt="Test Photo" class="game-photo"
             style="width: 50px; height: 50px; cursor: pointer;">
         <div style="font-size: 10px; color: blue;">Test Photo (Click Me)</div>
+        <button onclick="testModal()"
+            style="margin-top: 5px; padding: 5px;">Test Modal</button>
     </div>
+
+    <script>
+        function testModal() {
+            alert('JavaScript is working!');
+            console.log('Test modal button clicked');
+            const modal = document.getElementById('photoModal');
+            const photo = document.getElementById('enlargedPhoto');
+
+            console.log('Modal element:', modal);
+            console.log('Photo element:', photo);
+
+            if (modal && photo) {
+                photo.src = 'assets/favicon.png';
+                modal.classList.add('active');
+                modal.style.display = 'flex';
+                modal.style.position = 'fixed';
+                modal.style.top = '0';
+                modal.style.left = '0';
+                modal.style.width = '100%';
+                modal.style.height = '100%';
+                modal.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+                modal.style.zIndex = '99999';
+                console.log('Modal should be visible now');
+                console.log('Modal classes:', modal.className);
+                console.log('Modal style:', modal.style.display);
+            } else {
+                console.error('Modal elements not found');
+            }
+        }
+    </script>
 
 </body>
 
