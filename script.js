@@ -87,7 +87,7 @@ class TarneebTracker {
     // Data Management
     async loadGames() {
         try {
-            const response = await fetch(`${this.apiBase}?action=games`);
+            const response = await fetch(`${this.apiBase}?action=games&v=${Date.now()}`);
 
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
@@ -114,7 +114,7 @@ class TarneebTracker {
 
     async saveGames() {
         try {
-            const response = await fetch(`${this.apiBase}?action=save`, {
+            const response = await fetch(`${this.apiBase}?action=save&v=${Date.now()}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -810,7 +810,7 @@ class TarneebTracker {
         formData.append('photo', file);
 
         try {
-            const response = await fetch(`${this.apiBase}?action=upload`, {
+            const response = await fetch(`${this.apiBase}?action=upload&v=${Date.now()}`, {
                 method: 'POST',
                 body: formData
             });
