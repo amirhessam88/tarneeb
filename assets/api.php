@@ -34,7 +34,7 @@ function savePhoto($file, $filename) {
 }
 
 $method = $_SERVER['REQUEST_METHOD'];
-$action = $_GET['action'] ?? '';
+$action = isset($_GET['action']) ? $_GET['action'] : '';
 
 switch ($method) {
     case 'GET':

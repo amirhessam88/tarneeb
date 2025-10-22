@@ -533,7 +533,7 @@ class TarneebTracker {
                 ${gameDisplay}
                 ${game.photo ? `
                     <div style="margin-top: 15px; text-align: center;">
-                        <img src="assets/${game.photo}" alt="Game proof" class="game-photo" style="max-width: 100px; max-height: 100px; border-radius: 8px;" onclick="tracker.showEnlargedPhoto('assets/${game.photo}')">
+                        <img src="${game.photo}" alt="Game proof" class="game-photo" style="max-width: 100px; max-height: 100px; border-radius: 8px;" onclick="tracker.showEnlargedPhoto('${game.photo}')" onerror="console.error('Image failed to load:', '${game.photo}')">
                     </div>
                 ` : ''}
             </div>
@@ -665,7 +665,7 @@ class TarneebTracker {
                 ${game.photo ? `
                     <div class="game-details-photo">
                         <h4>Game Proof</h4>
-                        <img src="assets/${game.photo}" alt="Game proof" class="game-photo" onclick="tracker.showEnlargedPhoto('assets/${game.photo}')" style="cursor: pointer;">
+                        <img src="${game.photo}" alt="Game proof" class="game-photo" onclick="tracker.showEnlargedPhoto('${game.photo}')" style="cursor: pointer;" onerror="console.error('Image failed to load:', '${game.photo}')">
                     </div>
                 ` : ''}
             </div>
@@ -875,6 +875,7 @@ class TarneebTracker {
 
             if (result.success) {
                 console.log('Photo uploaded successfully:', result.url);
+                console.log('Photo URL being returned:', result.url);
                 this.showNotification('Photo uploaded successfully!', 'success');
                 return result.url; // Return the URL path to the uploaded photo
             } else {
@@ -1111,13 +1112,7 @@ class TarneebTracker {
         }
     }
 
-    showGameDetails(gameId) {
-        this.showGameDetails(gameId);
-    }
 
-    showEnlargedPhoto(photoSrc) {
-        this.showEnlargedPhoto(photoSrc);
-    }
 
     // Export/Import functionality
     exportData() {
