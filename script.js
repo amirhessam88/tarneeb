@@ -9,19 +9,28 @@ class TarneebTracker {
         this.config = null;
         this.offlineWarningShown = false;
         this.apiCallInProgress = false;
+        this.initialized = false;
         this.frequentPlayers = [
             'Ali', 'Amir', 'Bassel', 'Brittany', 'Christina', 'Hesham',
             'Joseph', 'Lester', 'Osama', 'Raquel', 'Youssef', 'Zena'
         ];
 
+        // Prevent multiple initializations
+        if (window.tarneebTrackerInitialized) {
+            console.log('TarneebTracker already initialized, skipping...');
+            return;
+        }
+        window.tarneebTrackerInitialized = true;
+
         this.initializeEventListeners();
         this.loadConfig();
         this.initializeRounds();
+        this.initialized = true;
     }
 
     async loadConfig() {
         try {
-            const response = await fetch('assets/config.json');
+            const response = await fetch(`assets/config.json?v=${Date.now()}`);
             this.config = await response.json();
             this.checkAuth();
             this.loadGames();
@@ -135,10 +144,23 @@ class TarneebTracker {
 
         try {
             console.log('Attempting to load games from:', `${this.apiBase}?action=games&v=${Date.now()}`);
-            const response = await fetch(`${this.apiBase}?action=games&v=${Date.now()}`);
 
+            // Add timeout for Chrome compatibility
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+
+            const response = await fetch(`${this.apiBase}?action=games&v=${Date.now()}`, {
+                signal: controller.signal,
+                cache: 'no-cache',
+                headers: {
+                    'Cache-Control': 'no-cache, no-store, must-revalidate',
+                    'Pragma': 'no-cache',
+                    'Expires': '0'
+                }
+            });
+
+            clearTimeout(timeoutId);
             console.log('API Response status:', response.status);
-            console.log('API Response headers:', response.headers);
 
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
@@ -154,11 +176,11 @@ class TarneebTracker {
             console.log('Games loaded successfully:', this.games.length, 'games');
         } catch (error) {
             console.error('Error loading games:', error);
-            console.error('Error details:', {
-                message: error.message,
-                stack: error.stack,
-                apiBase: this.apiBase
-            });
+
+            // Check if it's an abort error (timeout)
+            if (error.name === 'AbortError') {
+                console.log('API call timed out, using offline mode');
+            }
 
             // Fallback to localStorage for offline mode
             const games = localStorage.getItem('tarneeb_games');
@@ -1132,10 +1154,23 @@ class TarneebTracker {
 
     // Photo Enlargement
     showEnlargedPhoto(photoSrc) {
+        console.log('showEnlargedPhoto called with:', photoSrc);
         const modal = document.getElementById('photoModal');
         const photo = document.getElementById('enlargedPhoto');
+
+        if (!modal) {
+            console.error('photoModal element not found');
+            return;
+        }
+
+        if (!photo) {
+            console.error('enlargedPhoto element not found');
+            return;
+        }
+
         photo.src = photoSrc;
         modal.classList.add('active');
+        console.log('Modal should be visible now');
     }
 
     hidePhotoModal() {
@@ -1875,11 +1910,28 @@ class TarneebTracker {
     }
 }
 
-// Initialize the application
-const tracker = new TarneebTracker();
+// Initialize the application with Chrome-specific handling
+let tracker;
+
+// Chrome-specific initialization to prevent refresh loops
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        if (!window.tarneebTrackerInitialized) {
+            tracker = new TarneebTracker();
+        }
+    });
+} else {
+    // DOM already loaded
+    if (!window.tarneebTrackerInitialized) {
+        tracker = new TarneebTracker();
+    }
+}
 
 // Set today's date as default
 document.addEventListener('DOMContentLoaded', () => {
     const today = new Date().toISOString().split('T')[0];
-    document.getElementById('gameDate').value = today;
+    const gameDateInput = document.getElementById('gameDate');
+    if (gameDateInput) {
+        gameDateInput.value = today;
+    }
 });
