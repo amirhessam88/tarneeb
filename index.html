@@ -223,6 +223,15 @@
 
     <script src="script.js"></script>
 
+    <script>
+        // Test if tracker is created
+        setTimeout(() => {
+            console.log('Checking tracker after 1 second...');
+            console.log('window.tracker:', window.tracker);
+            console.log('typeof window.tracker:', typeof window.tracker);
+        }, 1000);
+    </script>
+
     <!-- Test Photo Enlargement -->
     <div style="position: fixed; bottom: 20px; right: 20px; z-index: 9999;">
         <img src="assets/favicon.png" alt="Test Photo"
@@ -233,6 +242,7 @@
 
     <script>
         function testPhotoEnlargement() {
+            alert('Photo clicked! JavaScript is working!');
             console.log('Test photo clicked!');
             console.log('Tracker available:', typeof window.tracker);
             console.log('showEnlargedPhoto function:', typeof window.tracker?.showEnlargedPhoto);
