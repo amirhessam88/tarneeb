@@ -14,6 +14,7 @@ class TarneebTracker {
 
         this.initializeEventListeners();
         this.loadConfig();
+        this.testAPI();
     }
 
     async loadConfig() {
@@ -84,16 +85,43 @@ class TarneebTracker {
         document.getElementById('loginModal').classList.remove('active');
     }
 
+    // Test API connectivity
+    async testAPI() {
+        try {
+            console.log('Testing API connectivity...');
+            const response = await fetch(`${this.apiBase}?action=debug`);
+            const data = await response.json();
+            console.log('API Debug info:', data);
+
+            if (data.status === 'API is working') {
+                console.log('✅ API is working correctly');
+                this.showNotification('API connected successfully!', 'success');
+            } else {
+                console.log('❌ API debug failed');
+                this.showNotification('API connection failed', 'error');
+            }
+        } catch (error) {
+            console.error('API test failed:', error);
+            this.showNotification('API test failed: ' + error.message, 'error');
+        }
+    }
+
     // Data Management
     async loadGames() {
         try {
+            console.log('Attempting to load games from:', `${this.apiBase}?action=games&v=${Date.now()}`);
             const response = await fetch(`${this.apiBase}?action=games&v=${Date.now()}`);
+
+            console.log('API Response status:', response.status);
+            console.log('API Response headers:', response.headers);
 
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
 
             const data = await response.json();
+            console.log('API Response data:', data);
+
             this.games = data.games || [];
             this.updateStats();
             this.renderGames();
@@ -101,6 +129,12 @@ class TarneebTracker {
             console.log('Games loaded successfully:', this.games.length, 'games');
         } catch (error) {
             console.error('Error loading games:', error);
+            console.error('Error details:', {
+                message: error.message,
+                stack: error.stack,
+                apiBase: this.apiBase
+            });
+
             // Fallback to localStorage for offline mode
             const games = localStorage.getItem('tarneeb_games');
             this.games = games ? JSON.parse(games) : [];

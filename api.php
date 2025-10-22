@@ -118,6 +118,19 @@ switch ($method) {
     case 'GET':
         if ($action === 'games') {
             echo json_encode(loadGames());
+        } elseif ($action === 'debug') {
+            // Debug endpoint
+            echo json_encode([
+                'status' => 'API is working',
+                'timestamp' => date('Y-m-d H:i:s'),
+                'data_file_exists' => file_exists($dataFile),
+                'data_file_readable' => is_readable($dataFile),
+                'photos_dir_exists' => is_dir($photosDir),
+                'photos_dir_writable' => is_writable($photosDir),
+                'current_dir' => getcwd(),
+                'data_file_path' => $dataFile,
+                'data_file_size' => file_exists($dataFile) ? filesize($dataFile) : 0
+            ]);
         } else {
             echo json_encode(['error' => 'Invalid action']);
         }
