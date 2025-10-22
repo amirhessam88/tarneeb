@@ -4,120 +4,95 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simple API Test</title>
+    <title>Simple Photo Test</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            max-width: 600px;
-            margin: 50px auto;
             padding: 20px;
         }
 
-        .test {
-            margin: 20px 0;
-            padding: 15px;
-            border-radius: 5px;
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
         }
 
-        .success {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
-        .error {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
+        .modal-content {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            max-width: 90%;
+            max-height: 90%;
         }
 
-        .info {
-            background: #d1ecf1;
-            color: #0c5460;
-            border: 1px solid #bee5eb;
-        }
-
-        button {
-            background: #007bff;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 4px;
+        .test-photo {
+            width: 100px;
+            height: 100px;
             cursor: pointer;
-            margin: 5px;
-        }
-
-        button:hover {
-            background: #0056b3;
-        }
-
-        pre {
-            background: #f8f9fa;
-            padding: 10px;
-            border-radius: 4px;
-            overflow-x: auto;
+            border: 2px solid blue;
         }
     </style>
 </head>
 
 <body>
-    <h1>Simple API Test</h1>
-    <p>This will test if the API is working at all.</p>
+    <h1>Simple Photo Enlargement Test</h1>
 
-    <button onclick="testAPI()">Test API</button>
-    <button onclick="testDirect()">Test Direct Access</button>
-    <button onclick="clearResults()">Clear Results</button>
+    <img src="assets/favicon.png" alt="Test Photo" class="test-photo"
+        onclick="showPhoto()">
+    <p>Click the photo above to test enlargement</p>
 
-    <div id="results"></div>
+    <button onclick="showPhoto()">Show Photo Modal</button>
+
+    <!-- Photo Modal -->
+    <div id="photoModal" class="modal">
+        <div class="modal-content">
+            <h2>Enlarged Photo</h2>
+            <img id="enlargedPhoto" src="" alt="Enlarged Photo"
+                style="max-width: 100%; max-height: 80vh;">
+            <br><br>
+            <button onclick="hidePhoto()">Close</button>
+        </div>
+    </div>
 
     <script>
-        function addResult(message, type = 'info') {
-            const div = document.createElement('div');
-            div.className = `test ${type}`;
-            div.innerHTML = message;
-            document.getElementById('results').appendChild(div);
-        }
+        function showPhoto() {
+            console.log('showPhoto called');
+            const modal = document.getElementById('photoModal');
+            const photo = document.getElementById('enlargedPhoto');
 
-        function clearResults() {
-            document.getElementById('results').innerHTML = '';
-        }
-
-        async function testAPI() {
-            addResult('Testing API connectivity...', 'info');
-
-            try {
-                const response = await fetch('api.php?action=debug');
-                addResult(`Response status: ${response.status}`, response.ok ? 'success' : 'error');
-
-                if (response.ok) {
-                    const data = await response.json();
-                    addResult(`API Response: <pre>${JSON.stringify(data, null, 2)}</pre>`, 'success');
-                } else {
-                    addResult(`Error: ${response.status} ${response.statusText}`, 'error');
-                }
-            } catch (error) {
-                addResult(`Fetch Error: ${error.message}`, 'error');
-                addResult(`Error Type: ${error.name}`, 'error');
+            if (modal && photo) {
+                photo.src = 'assets/favicon.png';
+                modal.classList.add('active');
+                console.log('Modal should be visible now');
+            } else {
+                console.error('Modal elements not found');
             }
         }
 
-        async function testDirect() {
-            addResult('Testing direct file access...', 'info');
-
-            try {
-                const response = await fetch('api.php');
-                addResult(`Direct access status: ${response.status}`, response.ok ? 'success' : 'error');
-
-                if (response.ok) {
-                    const text = await response.text();
-                    addResult(`Direct response: <pre>${text.substring(0, 500)}...</pre>`, 'info');
-                } else {
-                    addResult(`Direct access error: ${response.status} ${response.statusText}`, 'error');
-                }
-            } catch (error) {
-                addResult(`Direct access error: ${error.message}`, 'error');
+        function hidePhoto() {
+            const modal = document.getElementById('photoModal');
+            if (modal) {
+                modal.classList.remove('active');
             }
         }
+
+        // Close modal when clicking outside
+        document.getElementById('photoModal').addEventListener('click', function (e) {
+            if (e.target === this) {
+                hidePhoto();
+            }
+        });
     </script>
 </body>
 
