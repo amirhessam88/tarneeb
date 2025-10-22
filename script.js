@@ -8,6 +8,7 @@ class TarneebTracker {
         this.apiBase = 'api.php';
         this.config = null;
         this.offlineWarningShown = false;
+        this.apiCallInProgress = false;
         this.frequentPlayers = [
             'Ali', 'Amir', 'Bassel', 'Brittany', 'Christina', 'Hesham',
             'Joseph', 'Lester', 'Osama', 'Raquel', 'Youssef', 'Zena'
@@ -124,6 +125,14 @@ class TarneebTracker {
 
     // Data Management
     async loadGames() {
+        // Prevent multiple simultaneous API calls
+        if (this.apiCallInProgress) {
+            console.log('API call already in progress, skipping...');
+            return;
+        }
+
+        this.apiCallInProgress = true;
+
         try {
             console.log('Attempting to load games from:', `${this.apiBase}?action=games&v=${Date.now()}`);
             const response = await fetch(`${this.apiBase}?action=games&v=${Date.now()}`);
@@ -162,10 +171,21 @@ class TarneebTracker {
                 this.showNotification('Using offline mode. Data may not be synced.', 'warning');
                 this.offlineWarningShown = true;
             }
+        } finally {
+            this.apiCallInProgress = false;
         }
     }
 
     async saveGames() {
+        // Prevent multiple simultaneous save calls
+        if (this.apiCallInProgress) {
+            console.log('Save call already in progress, saving to localStorage only...');
+            localStorage.setItem('tarneeb_games', JSON.stringify(this.games));
+            return;
+        }
+
+        this.apiCallInProgress = true;
+
         try {
             const response = await fetch(`${this.apiBase}?action=save&v=${Date.now()}`, {
                 method: 'POST',
@@ -196,6 +216,8 @@ class TarneebTracker {
             // Fallback to localStorage
             localStorage.setItem('tarneeb_games', JSON.stringify(this.games));
             this.showNotification('Saved locally. Server unavailable.', 'warning');
+        } finally {
+            this.apiCallInProgress = false;
         }
     }
 
