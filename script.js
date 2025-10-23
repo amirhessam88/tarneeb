@@ -881,7 +881,7 @@ class TarneebTracker {
         if (game.photos && game.photos.length > 0) {
             // Multiple photos
             const photosHtml = game.photos.map(photo =>
-                `<img src="${photo}" alt="Game proof" class="game-photo" style="max-width: 100px; max-height: 100px; border-radius: 8px; margin: 2px; cursor: pointer;" onclick="showPhoto('${photo}')" onerror="console.error('Image failed to load:', '${photo}')">`
+                `<img src="${photo}" alt="Game proof" class="game-photo" style="max-width: 100px; max-height: 100px; border-radius: 8px; margin: 2px; cursor: pointer;" onclick="window.showPhoto('${photo}')" onerror="console.error('Image failed to load:', '${photo}')">`
             ).join('');
 
             return `
@@ -893,7 +893,7 @@ class TarneebTracker {
             // Single photo (backward compatibility)
             return `
                 <div style="margin-top: 15px; text-align: center;">
-                    <img src="${game.photo}" alt="Game proof" class="game-photo" style="max-width: 100px; max-height: 100px; border-radius: 8px; cursor: pointer;" onclick="showPhoto('${game.photo}')" onerror="console.error('Image failed to load:', '${game.photo}')">
+                    <img src="${game.photo}" alt="Game proof" class="game-photo" style="max-width: 100px; max-height: 100px; border-radius: 8px; cursor: pointer;" onclick="window.showPhoto('${game.photo}')" onerror="console.error('Image failed to load:', '${game.photo}')">
                 </div>
             `;
         }
@@ -1187,7 +1187,7 @@ class TarneebTracker {
         if (game.photos && game.photos.length > 0) {
             // Multiple photos
             const photosHtml = game.photos.map(photo =>
-                `<img src="${photo}" alt="Game proof" class="game-photo" style="cursor: pointer; max-width: 200px; max-height: 200px; border-radius: 8px; margin: 5px;" onclick="showPhoto('${photo}')" onerror="console.error('Image failed to load:', '${photo}')">`
+                `<img src="${photo}" alt="Game proof" class="game-photo" style="cursor: pointer; max-width: 200px; max-height: 200px; border-radius: 8px; margin: 5px;" onclick="window.showPhoto('${photo}')" onerror="console.error('Image failed to load:', '${photo}')">`
             ).join('');
 
             return `
@@ -1203,7 +1203,7 @@ class TarneebTracker {
             return `
                 <div class="game-details-photo">
                     <h4>Game Proof</h4>
-                    <img src="${game.photo}" alt="Game proof" class="game-photo" style="cursor: pointer;" onclick="showPhoto('${game.photo}')" onerror="console.error('Image failed to load:', '${game.photo}')">
+                    <img src="${game.photo}" alt="Game proof" class="game-photo" style="cursor: pointer;" onclick="window.showPhoto('${game.photo}')" onerror="console.error('Image failed to load:', '${game.photo}')">
                 </div>
             `;
         }
