@@ -1229,14 +1229,12 @@ class TarneebTracker {
 
         // Show the modal
         modal.classList.add('active');
-        modal.style.display = 'flex';
     }
 
     hidePhotoModal() {
         const modal = document.getElementById('photoModal');
         if (modal) {
             modal.classList.remove('active');
-            modal.style.display = 'none';
         }
     }
 
