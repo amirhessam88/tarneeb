@@ -445,12 +445,13 @@ class TarneebTracker {
             return bScore - aScore;
         });
 
-        recordsContainer.innerHTML = sortedPlayers.map(([playerName, stats]) => {
+        recordsContainer.innerHTML = sortedPlayers.map(([playerName, stats], index) => {
             const winRate = stats.games > 0 ? ((stats.wins / stats.games) * 100).toFixed(1) : 0;
             const winRateColor = winRate >= 60 ? '#28a745' : winRate >= 40 ? '#ffc107' : '#dc3545';
+            const rankClass = index < 3 ? `rank-${index + 1}` : '';
 
             return `
-                <div class="player-record-card">
+                <div class="player-record-card ${rankClass}">
                     <div class="player-name-header">${playerName}</div>
                     <div class="player-stats">
                         <div class="stat-item">
