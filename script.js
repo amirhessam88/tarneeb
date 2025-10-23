@@ -2025,20 +2025,34 @@ window.tracker = tracker; // Make it globally available
 
 // Global function for photo enlargement - defined immediately
 window.showPhoto = function (photoSrc) {
+    console.log('=== showPhoto called ===');
+    console.log('photoSrc:', photoSrc);
+
     // Try multiple ways to access the tracker
     let trackerInstance = window.tracker || tracker;
+    console.log('trackerInstance exists:', !!trackerInstance);
+    console.log('trackerInstance.showEnlargedPhoto exists:', !!(trackerInstance && trackerInstance.showEnlargedPhoto));
 
     if (trackerInstance && trackerInstance.showEnlargedPhoto) {
+        console.log('Using tracker instance');
         trackerInstance.showEnlargedPhoto(photoSrc);
     } else {
+        console.log('Using fallback - direct modal manipulation');
         // Fallback: directly manipulate the modal
         const modal = document.getElementById('photoModal');
         const photo = document.getElementById('enlargedPhoto');
 
+        console.log('Modal found:', !!modal);
+        console.log('Photo element found:', !!photo);
+
         if (modal && photo) {
+            console.log('Setting photo src and showing modal');
             photo.src = photoSrc;
             modal.classList.add('active');
             modal.style.display = 'flex'; // Force display
+
+            console.log('Modal classes after adding active:', modal.className);
+            console.log('Modal style display:', modal.style.display);
 
             // Add close button listener if not already added
             const closeBtn = document.getElementById('closePhotoModal');
@@ -2060,8 +2074,11 @@ window.showPhoto = function (photoSrc) {
                 });
                 modal.setAttribute('data-listener-added', 'true');
             }
+        } else {
+            console.error('Modal or photo element not found!');
         }
     }
+    console.log('=== end showPhoto ===');
 };
 
 // Make deleteExistingPhoto globally accessible
