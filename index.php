@@ -1,8 +1,5 @@
 <?php
-// Disable browser caching for the main page
-header('Cache-Control: no-cache, no-store, must-revalidate');
-header('Pragma: no-cache');
-header('Expires: 0');
+// No cache headers needed
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -10,11 +7,8 @@ header('Expires: 0');
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="Expires" content="0">
     <title>Tarneeb Score Tracker</title>
-    <link rel="stylesheet" href="styles.css?v=<?php echo time(); ?>">
+    <link rel="stylesheet" href="styles.css">
     <link rel="icon" type="image/png" href="assets/favicon.png">
 </head>
 
@@ -63,14 +57,14 @@ header('Expires: 0');
             </div>
 
             <div class="records-section">
-                <h2>Player Records</h2>
+                <h2>Player Rankings (by Score)</h2>
                 <div id="playerRecords" class="player-records">
                     <!-- Player records will be populated here -->
                 </div>
             </div>
 
             <div class="teams-section">
-                <h2>Best Teams</h2>
+                <h2>Team Rankings (by Score)</h2>
                 <div id="teamRankings" class="team-rankings">
                     <!-- Team rankings will be populated here -->
                 </div>
@@ -179,9 +173,10 @@ header('Expires: 0');
                     </div>
                 <div class="form-group">
                     <label for="gamePhotos">Game Photos (Proof):</label>
+                    <div class="photo-upload-info">Click the × button on existing photos to delete them, or add new photos below:</div>
+                    <div id="photoPreview" class="photo-preview"></div>
                     <input type="file" id="gamePhotos" name="gamePhotos" accept="image/*" multiple>
                     <div class="photo-upload-info">You can select multiple photos at once</div>
-                    <div id="photoPreview" class="photo-preview"></div>
                 </div>
                 </div>
 
@@ -222,6 +217,8 @@ header('Expires: 0');
     </div>
 
     <script src="script.js?v=<?php echo time(); ?>"></script>
+
+
 </body>
 
 </html>

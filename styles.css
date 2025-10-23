@@ -1210,6 +1210,35 @@ img {
     margin: 5px;
 }
 
+.existing-photo-container {
+    position: relative;
+    display: inline-block;
+    margin: 5px;
+}
+
+.delete-photo-btn {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background: #ff4444;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 25px;
+    height: 25px;
+    cursor: pointer;
+    font-size: 14px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s;
+}
+
+.delete-photo-btn:hover {
+    background: #cc0000;
+}
+
 .photo-upload-info {
     font-size: 12px;
     color: #666;

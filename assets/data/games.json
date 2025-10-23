@@ -1,154 +1,154 @@
 {
-  "games": [
-    {
-      "id": "1761177789095",
-      "team1Players": [
-        "Amir",
-        "Youssef"
-      ],
-      "team2Players": [
-        "Bassel",
-        "Christina"
-      ],
-      "rounds": [
+    "games": [
         {
-          "number": 1,
-          "team1Score": -17,
-          "team2Score": 65,
-          "team1Kaboots": 0,
-          "team2Kaboots": 0
+            "id": "1761167960510",
+            "team1Players": [
+                "Amir",
+                "Youssef"
+            ],
+            "team2Players": [
+                "Christina",
+                "Osama"
+            ],
+            "rounds": [
+                {
+                    "number": 1,
+                    "team1Score": 60,
+                    "team2Score": -20,
+                    "team1Kaboots": 0,
+                    "team2Kaboots": 0
+                }
+            ],
+            "gameDate": "2025-10-22",
+            "photos": [
+                "assets\/photos\/68f98ca22d3e5_1761184930.jpg"
+            ],
+            "createdAt": "2025-10-22T21:19:20.510Z",
+            "winner": "incomplete_team1_win",
+            "roundResults": [
+                {
+                    "winner": "team1",
+                    "team1Score": 62,
+                    "team2Score": -19
+                }
+            ],
+            "photo": "assets\/photos\/68f98ca22d3e5_1761184930.jpg"
         },
         {
-          "number": 2,
-          "team1Score": -8,
-          "team2Score": 63,
-          "team1Kaboots": 0,
-          "team2Kaboots": 0
-        }
-      ],
-      "gameDate": "2025-09-23",
-      "photos": [
-        "assets\/photos\/68f970bd02e20_1761177789.jpg"
-      ],
-      "photo": "assets\/photos\/68f970bd02e20_1761177789.jpg",
-      "createdAt": "2025-10-23T00:03:09.095Z",
-      "winner": "team2",
-      "roundResults": [
-        {
-          "winner": "team2",
-          "team1Score": -17,
-          "team2Score": 65
+            "id": "1761174099947",
+            "team1Players": [
+                "Hesham",
+                "Zena"
+            ],
+            "team2Players": [
+                "Joseph",
+                "Christina"
+            ],
+            "rounds": [
+                {
+                    "number": 1,
+                    "team1Score": 61,
+                    "team2Score": -26,
+                    "team1Kaboots": 0,
+                    "team2Kaboots": 0
+                }
+            ],
+            "gameDate": "2025-10-21",
+            "photos": [
+                "assets\/photos\/68f96253e8607_1761174099.jpg"
+            ],
+            "photo": "assets\/photos\/68f96253e8607_1761174099.jpg",
+            "createdAt": "2025-10-22T23:01:39.947Z",
+            "winner": "incomplete_team1_win",
+            "roundResults": [
+                {
+                    "winner": "team1",
+                    "team1Score": 61,
+                    "team2Score": -26
+                }
+            ]
         },
         {
-          "winner": "team2",
-          "team1Score": -8,
-          "team2Score": 63
-        }
-      ]
-    },
-    {
-      "id": "1761167960510",
-      "team1Players": [
-        "Amir",
-        "Youssef"
-      ],
-      "team2Players": [
-        "Christina",
-        "Osama"
-      ],
-      "rounds": [
+            "id": "1761173667644",
+            "team1Players": [
+                "Zena",
+                "Hesham"
+            ],
+            "team2Players": [
+                "Christina",
+                "Joseph"
+            ],
+            "rounds": [
+                {
+                    "number": 1,
+                    "team1Score": 63,
+                    "team2Score": 11,
+                    "team1Kaboots": 0,
+                    "team2Kaboots": 0
+                }
+            ],
+            "gameDate": "2025-10-01",
+            "photos": [
+                "assets\/photos\/68f960a3882a3_1761173667.jpg"
+            ],
+            "photo": "assets\/photos\/68f960a3882a3_1761173667.jpg",
+            "createdAt": "2025-10-22T22:54:27.644Z",
+            "winner": "incomplete_team1_win",
+            "roundResults": [
+                {
+                    "winner": "team1",
+                    "team1Score": 63,
+                    "team2Score": 11
+                }
+            ]
+        },
         {
-          "number": 1,
-          "team1Score": 62,
-          "team2Score": -19,
-          "team1Kaboots": 0,
-          "team2Kaboots": 0
+            "id": "1761177789095",
+            "team1Players": [
+                "Amir",
+                "Youssef"
+            ],
+            "team2Players": [
+                "Bassel",
+                "Christina"
+            ],
+            "rounds": [
+                {
+                    "number": 1,
+                    "team1Score": -17,
+                    "team2Score": 65,
+                    "team1Kaboots": 0,
+                    "team2Kaboots": 0
+                },
+                {
+                    "number": 2,
+                    "team1Score": -8,
+                    "team2Score": 63,
+                    "team1Kaboots": 0,
+                    "team2Kaboots": 0
+                }
+            ],
+            "gameDate": "2025-09-23",
+            "photos": [
+                "assets\/photos\/68f970bd02e20_1761177789.jpg"
+            ],
+            "photo": "assets\/photos\/68f970bd02e20_1761177789.jpg",
+            "createdAt": "2025-10-23T00:03:09.095Z",
+            "winner": "team2",
+            "roundResults": [
+                {
+                    "winner": "team2",
+                    "team1Score": -17,
+                    "team2Score": 65
+                },
+                {
+                    "winner": "team2",
+                    "team1Score": -8,
+                    "team2Score": 63
+                }
+            ]
         }
-      ],
-      "gameDate": "2025-10-22",
-      "photos": [
-        "assets\/photos\/68f94a58754f6_1761167960.jpg"
-      ],
-      "photo": "assets\/photos\/68f94a58754f6_1761167960.jpg",
-      "createdAt": "2025-10-22T21:19:20.510Z",
-      "winner": "incomplete_team1_win",
-      "roundResults": [
-        {
-          "winner": "team1",
-          "team1Score": 62,
-          "team2Score": -19
-        }
-      ]
-    },
-    {
-      "id": "1761174099947",
-      "team1Players": [
-        "Hesham",
-        "Zena"
-      ],
-      "team2Players": [
-        "Joseph",
-        "Christina"
-      ],
-      "rounds": [
-        {
-          "number": 1,
-          "team1Score": 61,
-          "team2Score": -26,
-          "team1Kaboots": 0,
-          "team2Kaboots": 0
-        }
-      ],
-      "gameDate": "2025-10-21",
-      "photos": [
-        "assets\/photos\/68f96253e8607_1761174099.jpg"
-      ],
-      "photo": "assets\/photos\/68f96253e8607_1761174099.jpg",
-      "createdAt": "2025-10-22T23:01:39.947Z",
-      "winner": "incomplete_team1_win",
-      "roundResults": [
-        {
-          "winner": "team1",
-          "team1Score": 61,
-          "team2Score": -26
-        }
-      ]
-    },
-    {
-      "id": "1761173667644",
-      "team1Players": [
-        "Zena",
-        "Hesham"
-      ],
-      "team2Players": [
-        "Christina",
-        "Joseph"
-      ],
-      "rounds": [
-        {
-          "number": 1,
-          "team1Score": 63,
-          "team2Score": 11,
-          "team1Kaboots": 0,
-          "team2Kaboots": 0
-        }
-      ],
-      "gameDate": "2025-10-01",
-      "photos": [
-        "assets\/photos\/68f960a3882a3_1761173667.jpg"
-      ],
-      "photo": "assets\/photos\/68f960a3882a3_1761173667.jpg",
-      "createdAt": "2025-10-22T22:54:27.644Z",
-      "winner": "incomplete_team1_win",
-      "roundResults": [
-        {
-          "winner": "team1",
-          "team1Score": 63,
-          "team2Score": 11
-        }
-      ]
-    }
-  ],
-  "lastUpdated": "2025-10-23T00:03:09+00:00",
-  "version": "1.0"
+    ],
+    "lastUpdated": "2025-10-23T02:02:10+00:00",
+    "version": "1.0"
 }
