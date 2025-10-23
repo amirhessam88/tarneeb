@@ -26,18 +26,13 @@ class TarneebTracker {
         this.configLoading = true;
 
         try {
-            console.log('Loading config...');
-            const response = await fetch(`assets/config.json?v=${Date.now()}`);
-            this.config = await response.json();
-            console.log('Config loaded successfully:', this.config);
-            this.checkAuth();
+            // Authentication is handled server-side via environment variables
+            console.log('Using server-side authentication');
+            await this.checkAuth();
             this.loadGames();
         } catch (error) {
-            console.error('Error loading config:', error);
-            // Fallback to hardcoded credentials
-            this.config = { admin: { username: 'rhc', password: 'rhc' } };
-            console.log('Using fallback config:', this.config);
-            this.checkAuth();
+            console.error('Error in loadConfig:', error);
+            await this.checkAuth();
             this.loadGames();
         } finally {
             this.configLoading = false;
@@ -45,38 +40,104 @@ class TarneebTracker {
     }
 
     // Authentication
-    checkAuth() {
+    async checkAuth() {
         const user = localStorage.getItem('tarneeb_user');
         if (user) {
-            this.currentUser = JSON.parse(user);
-            this.showAdminControls();
-            this.renderGames(); // Re-render games to show edit buttons
+            try {
+                // Verify authentication with server
+                const response = await fetch('api.php?action=auth-status');
+                const result = await response.json();
+
+                if (result.authenticated) {
+                    this.currentUser = JSON.parse(user);
+                    this.showAdminControls();
+                    this.renderGames(); // Re-render games to show edit buttons
+                } else {
+                    // Server says not authenticated, clear local state
+                    this.currentUser = null;
+                    localStorage.removeItem('tarneeb_user');
+                    this.hideAdminControls();
+                }
+            } catch (error) {
+                console.error('Auth check failed:', error);
+                // On error, assume not authenticated for security
+                this.currentUser = null;
+                localStorage.removeItem('tarneeb_user');
+                this.hideAdminControls();
+            }
         }
         this.showMainScreen();
     }
 
-    login(username, password) {
-        console.log('Login attempt:', { username, password });
-        console.log('Config loaded:', this.config);
+    async login(username, password) {
+        console.log('Login attempt:', { username });
 
-        // Simple authentication - in production, use proper authentication
-        if (this.config && username === this.config.admin.username && password === this.config.admin.password) {
-            console.log('Login successful');
-            this.currentUser = { username, loginTime: new Date().toISOString() };
-            localStorage.setItem('tarneeb_user', JSON.stringify(this.currentUser));
-            this.showAdminControls();
-            this.hideLoginModal();
-            this.renderGames(); // Re-render games to show edit buttons
-            return true;
+        try {
+            // Get CSRF token first
+            const csrfResponse = await fetch('api.php?action=csrf-token');
+            const csrfData = await csrfResponse.json();
+
+            if (!csrfData.csrf_token) {
+                console.error('Failed to get CSRF token');
+                return false;
+            }
+
+            // Attempt login with server-side authentication
+            const response = await fetch('api.php?action=login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    username: username,
+                    password: password,
+                    csrf_token: csrfData.csrf_token
+                })
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                console.log('Login successful');
+                this.currentUser = { username, loginTime: new Date().toISOString() };
+                localStorage.setItem('tarneeb_user', JSON.stringify(this.currentUser));
+                this.showAdminControls();
+                this.hideLoginModal();
+                this.renderGames(); // Re-render games to show edit buttons
+                return true;
+            } else {
+                console.log('Login failed:', result.message);
+                this.showMessage(result.message || 'Login failed', 'error');
+                return false;
+            }
+        } catch (error) {
+            console.error('Login error:', error);
+            this.showMessage('Login failed due to network error', 'error');
+            return false;
         }
-        console.log('Login failed - invalid credentials');
-        return false;
     }
 
-    logout() {
-        this.currentUser = null;
-        localStorage.removeItem('tarneeb_user');
-        this.hideAdminControls();
+    async logout() {
+        try {
+            // Call server-side logout
+            const response = await fetch('api.php?action=logout', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            });
+
+            const result = await response.json();
+            console.log('Logout result:', result);
+        } catch (error) {
+            console.error('Logout error:', error);
+        } finally {
+            // Always clear local state
+            this.currentUser = null;
+            localStorage.removeItem('tarneeb_user');
+            this.hideAdminControls();
+            this.renderGames(); // Re-render games to hide edit buttons
+        }
     }
 
     // Screen Management

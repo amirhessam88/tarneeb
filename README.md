@@ -111,7 +111,7 @@ tarneeb/
 ├── 📄 LICENSE                # License information
 ├── 📄 README.md              # This file
 └── 📁 assets/
-    ├── 📄 config.json        # Application configuration
+    ├── 📁 config/            # Secure configuration (environment variables)
     ├── 📄 games.json         # Game data storage
     ├── 🖼️ favicon.png        # Site favicon
     ├── 🖼️ slickml.png        # SlickML logo
