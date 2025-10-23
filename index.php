@@ -44,6 +44,18 @@
             </div>
         </header>
 
+        <!-- DEBUG: Server Test Button -->
+        <div style="text-align: center; margin: 20px; padding: 20px; background: #e8f4fd; border: 2px solid #007bff; border-radius: 8px;">
+            <h3 style="color: #007bff;">Server Debug: Photo Enlargement Test</h3>
+            <button onclick="testPhotoFunction()" style="padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; margin: 5px;">
+                Test Photo Function
+            </button>
+            <button onclick="window.showPhoto('assets/photos/68f98ca22d3e5_1761184930.jpg')" style="padding: 10px 20px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; margin: 5px;">
+                Test Direct Call
+            </button>
+            <p style="margin-top: 10px; font-size: 12px; color: #666;">Check browser console (F12) for debug messages</p>
+        </div>
+
         <main class="main-content">
             <div class="stats-cards">
                 <div class="stat-card">
