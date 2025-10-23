@@ -391,6 +391,34 @@ body {
     background: #b8860b;
 }
 
+.player-rank {
+    position: absolute;
+    top: -10px;
+    left: 20px;
+    background: #667eea;
+    color: white;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.player-record-card.rank-1 .player-rank {
+    background: #ff6b35;
+}
+
+.player-record-card.rank-2 .player-rank {
+    background: #a0a0a0;
+}
+
+.player-record-card.rank-3 .player-rank {
+    background: #b8860b;
+}
+
 .team-name {
     font-size: 18px;
     font-weight: bold;

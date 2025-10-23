@@ -452,6 +452,7 @@ class TarneebTracker {
 
             return `
                 <div class="player-record-card ${rankClass}">
+                    <div class="player-rank">${index + 1}</div>
                     <div class="player-name-header">${playerName}</div>
                     <div class="player-stats">
                         <div class="stat-item">
