@@ -1216,8 +1216,14 @@ class TarneebTracker {
 
     // Photo Enlargement
     showEnlargedPhoto(photoSrc) {
+        console.log('=== showEnlargedPhoto called ===');
+        console.log('photoSrc:', photoSrc);
+
         const modal = document.getElementById('photoModal');
         const photo = document.getElementById('enlargedPhoto');
+
+        console.log('Modal found:', !!modal);
+        console.log('Photo element found:', !!photo);
 
         if (!modal || !photo) {
             console.error('Photo modal elements not found');
@@ -1226,10 +1232,16 @@ class TarneebTracker {
 
         // Set the photo source
         photo.src = photoSrc;
+        console.log('Photo src set to:', photo.src);
 
         // Show the modal
         modal.classList.add('active');
         modal.style.display = 'flex'; // Force display
+
+        console.log('Modal classes after adding active:', modal.className);
+        console.log('Modal style display:', modal.style.display);
+        console.log('Modal computed style display:', window.getComputedStyle(modal).display);
+        console.log('=== end showEnlargedPhoto ===');
     }
 
     hidePhotoModal() {
