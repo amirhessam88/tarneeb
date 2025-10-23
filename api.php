@@ -28,8 +28,7 @@ header('Access-Control-Allow-Headers: Content-Type');
 $dataFile = 'assets/data/games.json';
 $photosDir = 'assets/photos/';
 
-// Load secure configuration
-require_once 'config/secure_config.php';
+// Configuration will be loaded only when authentication is needed
 
 // Log errors to a file for debugging
 $logFile = 'assets/debug.log';
@@ -136,6 +135,8 @@ function savePhoto($file, $filename) {
 function loadConfig() {
     global $logFile;
     try {
+        // Load configuration only when needed
+        require_once 'config/secure_config.php';
         $secureConfig = SecureConfig::getInstance();
         return $secureConfig;
     } catch (Exception $e) {
@@ -265,9 +266,15 @@ switch ($method) {
         if ($action === 'games') {
             echo json_encode(loadGames());
         } elseif ($action === 'auth-status') {
-            echo json_encode(['authenticated' => isAuthenticated()]);
+            // Only check authentication if session exists
+            $authenticated = isset($_SESSION['authenticated']) && $_SESSION['authenticated'] === true;
+            echo json_encode(['authenticated' => $authenticated]);
         } elseif ($action === 'csrf-token') {
-            echo json_encode(['csrf_token' => generateCSRFToken()]);
+            // Generate CSRF token without loading full config
+            if (!isset($_SESSION['csrf_token'])) {
+                $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+            }
+            echo json_encode(['csrf_token' => $_SESSION['csrf_token']]);
         } elseif ($action === 'debug') {
             // Debug endpoint
             echo json_encode([
