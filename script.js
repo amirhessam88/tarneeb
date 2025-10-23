@@ -2002,14 +2002,43 @@ class TarneebTracker {
 const tracker = new TarneebTracker();
 window.tracker = tracker; // Make it globally available
 
-// Global function for photo enlargement
-function showPhoto(photoSrc) {
-    if (tracker && tracker.showEnlargedPhoto) {
-        tracker.showEnlargedPhoto(photoSrc);
+// Global function for photo enlargement - defined immediately
+window.showPhoto = function(photoSrc) {
+    // Try multiple ways to access the tracker
+    let trackerInstance = window.tracker || tracker;
+    
+    if (trackerInstance && trackerInstance.showEnlargedPhoto) {
+        trackerInstance.showEnlargedPhoto(photoSrc);
     } else {
-        console.error('Tracker not available for photo enlargement');
+        // Fallback: directly manipulate the modal
+        const modal = document.getElementById('photoModal');
+        const photo = document.getElementById('enlargedPhoto');
+        
+        if (modal && photo) {
+            photo.src = photoSrc;
+            modal.classList.add('active');
+            
+            // Add close button listener if not already added
+            const closeBtn = document.getElementById('closePhotoModal');
+            if (closeBtn && !closeBtn.hasAttribute('data-listener-added')) {
+                closeBtn.addEventListener('click', function() {
+                    modal.classList.remove('active');
+                });
+                closeBtn.setAttribute('data-listener-added', 'true');
+            }
+            
+            // Add click-outside-to-close functionality
+            if (!modal.hasAttribute('data-listener-added')) {
+                modal.addEventListener('click', function(e) {
+                    if (e.target === modal) {
+                        modal.classList.remove('active');
+                    }
+                });
+                modal.setAttribute('data-listener-added', 'true');
+            }
+        }
     }
-}
+};
 
 // Make deleteExistingPhoto globally accessible
 window.deleteExistingPhoto = function (photoIndex) {
