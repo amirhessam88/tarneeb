@@ -15,7 +15,6 @@ class TarneebTracker {
             'Joseph', 'Lester', 'Osama', 'Raquel', 'Youssef', 'Zena'
         ];
 
-
         this.initializeEventListeners();
         this.loadConfig();
         this.initializeRounds();
@@ -23,6 +22,9 @@ class TarneebTracker {
     }
 
     async loadConfig() {
+        if (this.configLoading) return;
+        this.configLoading = true;
+
         try {
             console.log('Loading config...');
             const response = await fetch(`assets/config.json?v=${Date.now()}`);
@@ -37,6 +39,8 @@ class TarneebTracker {
             console.log('Using fallback config:', this.config);
             this.checkAuth();
             this.loadGames();
+        } finally {
+            this.configLoading = false;
         }
     }
 
@@ -46,6 +50,7 @@ class TarneebTracker {
         if (user) {
             this.currentUser = JSON.parse(user);
             this.showAdminControls();
+            this.renderGames(); // Re-render games to show edit buttons
         }
         this.showMainScreen();
     }
@@ -61,6 +66,7 @@ class TarneebTracker {
             localStorage.setItem('tarneeb_user', JSON.stringify(this.currentUser));
             this.showAdminControls();
             this.hideLoginModal();
+            this.renderGames(); // Re-render games to show edit buttons
             return true;
         }
         console.log('Login failed - invalid credentials');
@@ -148,6 +154,9 @@ class TarneebTracker {
 
     // Data Management
     async loadGames() {
+        if (this.gamesLoading) return;
+        this.gamesLoading = true;
+
         try {
             const response = await fetch(`${this.apiBase}?action=games&v=${Date.now()}`);
 
@@ -166,6 +175,8 @@ class TarneebTracker {
             this.games = games ? JSON.parse(games) : [];
             this.updateStats();
             this.renderGames();
+        } finally {
+            this.gamesLoading = false;
         }
     }
 
@@ -945,13 +956,12 @@ class TarneebTracker {
             this.rounds = game.rounds;
             this.renderRounds();
 
-            // Load team players from first round
-            const firstRound = game.rounds[0];
-            if (firstRound) {
-                document.getElementById('team1Player1').value = firstRound.team1Players[0] || '';
-                document.getElementById('team1Player2').value = firstRound.team1Players[1] || '';
-                document.getElementById('team2Player1').value = firstRound.team2Players[0] || '';
-                document.getElementById('team2Player2').value = firstRound.team2Players[1] || '';
+            // Load team players from game level (not from rounds)
+            if (game.team1Players && game.team2Players) {
+                document.getElementById('team1Player1').value = game.team1Players[0] || '';
+                document.getElementById('team1Player2').value = game.team1Players[1] || '';
+                document.getElementById('team2Player1').value = game.team2Players[0] || '';
+                document.getElementById('team2Player2').value = game.team2Players[1] || '';
             }
         }
         // Handle old team format
@@ -975,16 +985,54 @@ class TarneebTracker {
 
         document.getElementById('gameDate').value = game.gameDate;
 
-        // Handle photos
+        // Handle photos with delete functionality
+        this.renderExistingPhotos(game);
+    }
+
+    renderExistingPhotos(game) {
+        const photoPreview = document.getElementById('photoPreview');
+        let photosHtml = '';
+
         if (game.photos && game.photos.length > 0) {
-            const photosHtml = game.photos.map(photo =>
-                `<img src="${photo}" alt="Game photo" style="max-width: 200px; max-height: 200px; border-radius: 8px; margin: 5px;">`
-            ).join('');
-            document.getElementById('photoPreview').innerHTML = photosHtml;
+            photosHtml = game.photos.map((photo, index) => `
+                    <div class="existing-photo-container" style="display: inline-block; margin: 5px; position: relative;">
+                        <img src="${photo}" alt="Game photo" style="max-width: 200px; max-height: 200px; border-radius: 8px; border: 2px solid #ddd;">
+                        <button type="button" class="delete-photo-btn" onclick="deleteExistingPhoto(${index})" 
+                                style="position: absolute; top: 5px; right: 5px; background: #ff4444; color: white; border: none; border-radius: 50%; width: 25px; height: 25px; cursor: pointer; font-size: 14px; line-height: 1;">
+                            ×
+                        </button>
+                    </div>
+                `).join('');
         } else if (game.photo) {
-            document.getElementById('photoPreview').innerHTML = `
-                <img src="assets/${game.photo}" alt="Current photo" style="max-width: 200px; max-height: 200px; border-radius: 8px;">
-            `;
+            photosHtml = `
+                    <div class="existing-photo-container" style="display: inline-block; margin: 5px; position: relative;">
+                        <img src="assets/${game.photo}" alt="Current photo" style="max-width: 200px; max-height: 200px; border-radius: 8px; border: 2px solid #ddd;">
+                        <button type="button" class="delete-photo-btn" onclick="deleteExistingPhoto(0)" 
+                                style="position: absolute; top: 5px; right: 5px; background: #ff4444; color: white; border: none; border-radius: 50%; width: 25px; height: 25px; cursor: pointer; font-size: 14px; line-height: 1;">
+                            ×
+                        </button>
+                    </div>
+                `;
+        }
+
+        photoPreview.innerHTML = photosHtml;
+    }
+
+    deleteExistingPhoto(photoIndex) {
+        if (!this.editingGameId) return;
+
+        const game = this.games.find(g => g.id === this.editingGameId);
+        if (!game) return;
+
+        if (confirm('Are you sure you want to delete this photo?')) {
+            if (game.photos && game.photos.length > 0) {
+                game.photos.splice(photoIndex, 1);
+            } else if (game.photo) {
+                delete game.photo;
+            }
+
+            // Re-render the photos
+            this.renderExistingPhotos(game);
         }
     }
 
@@ -1816,17 +1864,32 @@ class TarneebTracker {
             gameDate: formData.get('gameDate')
         };
 
-        // Handle multiple photo uploads
+        // Handle photos (existing + new uploads)
+        if (this.editingGameId) {
+            // When editing, preserve existing photos that weren't deleted
+            const existingGame = this.games.find(g => g.id === this.editingGameId);
+            if (existingGame && existingGame.photos) {
+                gameData.photos = [...existingGame.photos];
+            } else if (existingGame && existingGame.photo) {
+                gameData.photos = [existingGame.photo];
+            }
+        }
+
+        // Handle new photo uploads
         if (photoFiles.length > 0) {
             const photoUrls = await this.uploadMultiplePhotos(photoFiles);
             if (photoUrls.length > 0) {
-                gameData.photos = photoUrls;
+                if (gameData.photos) {
+                    gameData.photos = [...gameData.photos, ...photoUrls];
+                } else {
+                    gameData.photos = photoUrls;
+                }
                 // Keep backward compatibility with single photo
-                if (photoUrls.length === 1) {
-                    gameData.photo = photoUrls[0];
+                if (gameData.photos.length === 1) {
+                    gameData.photo = gameData.photos[0];
                 }
             } else {
-                alert('Failed to upload photos. Game will be saved without photos.');
+                alert('Failed to upload photos. Game will be saved without new photos.');
             }
         }
 
@@ -1928,6 +1991,16 @@ function showPhoto(photoSrc) {
         console.error('Tracker not available for photo enlargement');
     }
 }
+
+// Make deleteExistingPhoto globally accessible
+window.deleteExistingPhoto = function (photoIndex) {
+    if (tracker && tracker.deleteExistingPhoto) {
+        tracker.deleteExistingPhoto(photoIndex);
+    } else {
+        console.error('Tracker not available for photo deletion');
+    }
+};
+
 
 
 // Set today's date as default
