@@ -1241,9 +1241,19 @@ class TarneebTracker {
         modal.style.position = 'fixed'; // Force fixed positioning
         modal.style.top = '0';
         modal.style.left = '0';
-        modal.style.width = '100%';
-        modal.style.height = '100%';
+        modal.style.width = '100vw';
+        modal.style.height = '100vh';
         modal.style.backgroundColor = 'rgba(0, 0, 0, 0.8)'; // Force background
+
+        // Ensure the modal content is visible
+        const modalContent = modal.querySelector('.modal-content');
+        if (modalContent) {
+            modalContent.style.maxWidth = '90vw';
+            modalContent.style.maxHeight = '90vh';
+            modalContent.style.width = 'auto';
+            modalContent.style.height = 'auto';
+            modalContent.style.margin = 'auto';
+        }
 
         console.log('Modal classes after adding active:', modal.className);
         console.log('Modal style display:', modal.style.display);
@@ -1264,6 +1274,14 @@ class TarneebTracker {
         const rect = modal.getBoundingClientRect();
         console.log('Modal bounding rect:', rect);
         console.log('Modal is in viewport:', rect.top >= 0 && rect.left >= 0 && rect.bottom <= window.innerHeight && rect.right <= window.innerWidth);
+
+        // Check modal content dimensions
+        if (modalContent) {
+            const contentRect = modalContent.getBoundingClientRect();
+            console.log('Modal content bounding rect:', contentRect);
+            console.log('Modal content width:', contentRect.width);
+            console.log('Modal content height:', contentRect.height);
+        }
 
         console.log('=== end showEnlargedPhoto ===');
     }
