@@ -1847,6 +1847,25 @@ class TarneebTracker {
                 this.hidePhotoModal();
             }
         });
+
+        // Delegated click handler for game photos (robust against CSP/inline handler issues)
+        document.addEventListener('click', (e) => {
+            const photoEl = e.target && (e.target.classList && e.target.classList.contains('game-photo')
+                ? e.target
+                : (e.target.closest ? e.target.closest('.game-photo') : null));
+            if (photoEl) {
+                const src = photoEl.getAttribute('src');
+                if (!src) return;
+                e.preventDefault();
+                // Minimal trace to verify click in production
+                console.debug('game-photo clicked:', src);
+                if (typeof window.showPhoto === 'function') {
+                    window.showPhoto(src);
+                } else if (window.tracker && typeof window.tracker.showEnlargedPhoto === 'function') {
+                    window.tracker.showEnlargedPhoto(src);
+                }
+            }
+        });
     }
 
     // Game Form Handling
