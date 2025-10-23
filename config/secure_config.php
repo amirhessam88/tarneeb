@@ -24,7 +24,7 @@ class SecureConfig {
     private function loadConfig() {
         // Load configuration from environment variables
         if (!$this->loadFromEnvironment()) {
-            throw new Exception('Environment variables not configured. Please set TARNEEB_ADMIN_USERNAME and TARNEEB_ADMIN_PASSWORD_HASH in your cPanel environment variables or .bashrc file.');
+            throw new Exception('Environment variables not configured. Please set TARNEEB_ADMIN_USERNAME and TARNEEB_ADMIN_PASSWORD in your cPanel environment variables or .bashrc file.');
         }
     }
     
@@ -33,13 +33,13 @@ class SecureConfig {
      */
     private function loadFromEnvironment() {
         $username = getenv('TARNEEB_ADMIN_USERNAME');
-        $passwordHash = getenv('TARNEEB_ADMIN_PASSWORD_HASH');
+        $password = getenv('TARNEEB_ADMIN_PASSWORD');
         
-        if ($username && $passwordHash) {
+        if ($username && $password) {
             $this->config = [
                 'admin' => [
                     'username' => $username,
-                    'password_hash' => $passwordHash
+                    'password' => $password
                 ],
                 'version' => '2.0'
             ];
@@ -77,7 +77,7 @@ class SecureConfig {
     public function getAdminCredentials() {
         return [
             'username' => $this->get('admin.username'),
-            'password_hash' => $this->get('admin.password_hash')
+            'password' => $this->get('admin.password')
         ];
     }
     

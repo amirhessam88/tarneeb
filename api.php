@@ -214,19 +214,13 @@ function authenticateUser($username, $password) {
     }
     
     $admin = $secureConfig->getAdminCredentials();
-    if (!$admin['username'] || !$admin['password_hash']) {
+    if (!$admin['username'] || !$admin['password']) {
         logError("Admin credentials not found in secure config");
         return false;
     }
     
-    // Check username
-    if ($username !== $admin['username']) {
-        logError("Authentication failed for user: $username");
-        return false;
-    }
-    
-    // Verify password hash
-    if (!password_verify($password, $admin['password_hash'])) {
+    // Check username and password
+    if ($username !== $admin['username'] || $password !== $admin['password']) {
         logError("Authentication failed for user: $username");
         return false;
     }
