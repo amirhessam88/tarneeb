@@ -1241,6 +1241,23 @@ class TarneebTracker {
         console.log('Modal classes after adding active:', modal.className);
         console.log('Modal style display:', modal.style.display);
         console.log('Modal computed style display:', window.getComputedStyle(modal).display);
+
+        // Check positioning and z-index
+        const computedStyle = window.getComputedStyle(modal);
+        console.log('Modal position:', computedStyle.position);
+        console.log('Modal z-index:', computedStyle.zIndex);
+        console.log('Modal top:', computedStyle.top);
+        console.log('Modal left:', computedStyle.left);
+        console.log('Modal width:', computedStyle.width);
+        console.log('Modal height:', computedStyle.height);
+        console.log('Modal visibility:', computedStyle.visibility);
+        console.log('Modal opacity:', computedStyle.opacity);
+
+        // Check if modal is actually in viewport
+        const rect = modal.getBoundingClientRect();
+        console.log('Modal bounding rect:', rect);
+        console.log('Modal is in viewport:', rect.top >= 0 && rect.left >= 0 && rect.bottom <= window.innerHeight && rect.right <= window.innerWidth);
+
         console.log('=== end showEnlargedPhoto ===');
     }
 
