@@ -1229,12 +1229,14 @@ class TarneebTracker {
 
         // Show the modal
         modal.classList.add('active');
+        modal.style.display = 'flex'; // Force display
     }
 
     hidePhotoModal() {
         const modal = document.getElementById('photoModal');
         if (modal) {
             modal.classList.remove('active');
+            modal.style.display = 'none'; // Force hide
         }
     }
 
@@ -2004,29 +2006,20 @@ window.tracker = tracker; // Make it globally available
 
 // Global function for photo enlargement - defined immediately
 window.showPhoto = function (photoSrc) {
-    // Debug for deployment
-    console.log('showPhoto called on server with:', photoSrc);
-
     // Try multiple ways to access the tracker
     let trackerInstance = window.tracker || tracker;
 
     if (trackerInstance && trackerInstance.showEnlargedPhoto) {
-        console.log('Using tracker instance on server');
         trackerInstance.showEnlargedPhoto(photoSrc);
     } else {
-        console.log('Using fallback on server');
         // Fallback: directly manipulate the modal
         const modal = document.getElementById('photoModal');
         const photo = document.getElementById('enlargedPhoto');
 
-        console.log('Modal found:', !!modal);
-        console.log('Photo found:', !!photo);
-
         if (modal && photo) {
-            console.log('Setting photo and showing modal on server');
             photo.src = photoSrc;
             modal.classList.add('active');
-            modal.style.display = 'flex'; // Force display on server
+            modal.style.display = 'flex'; // Force display
 
             // Add close button listener if not already added
             const closeBtn = document.getElementById('closePhotoModal');
@@ -2048,8 +2041,6 @@ window.showPhoto = function (photoSrc) {
                 });
                 modal.setAttribute('data-listener-added', 'true');
             }
-        } else {
-            console.error('Modal or photo element not found on server!');
         }
     }
 };
@@ -2063,32 +2054,6 @@ window.deleteExistingPhoto = function (photoIndex) {
     }
 };
 
-// Test function for server debugging
-window.testPhotoFunction = function () {
-    console.log('=== SERVER DEBUG TEST ===');
-    console.log('window.showPhoto exists:', typeof window.showPhoto);
-    console.log('window.tracker exists:', !!window.tracker);
-    console.log('tracker exists:', !!tracker);
-
-    const modal = document.getElementById('photoModal');
-    const photo = document.getElementById('enlargedPhoto');
-    console.log('Modal element found:', !!modal);
-    console.log('Photo element found:', !!photo);
-
-    if (modal) {
-        console.log('Modal classes:', modal.className);
-        console.log('Modal style display:', modal.style.display);
-    }
-
-    // Test the function
-    if (typeof window.showPhoto === 'function') {
-        console.log('Calling showPhoto function...');
-        window.showPhoto('assets/photos/68f98ca22d3e5_1761184930.jpg');
-    } else {
-        console.error('showPhoto function not found!');
-    }
-    console.log('=== END SERVER DEBUG TEST ===');
-};
 
 
 
