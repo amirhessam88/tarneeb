@@ -1246,6 +1246,43 @@ img {
     font-style: italic;
 }
 
+/* Ranking Colors */
+.player-record-card.rank-1 {
+    border: 3px solid #FFD700;
+    background: linear-gradient(135deg, #FFF8DC, #FFD700);
+    box-shadow: 0 4px 20px rgba(255, 215, 0, 0.3);
+}
+
+.player-record-card.rank-2 {
+    border: 3px solid #C0C0C0;
+    background: linear-gradient(135deg, #F8F8FF, #C0C0C0);
+    box-shadow: 0 4px 20px rgba(192, 192, 192, 0.3);
+}
+
+.player-record-card.rank-3 {
+    border: 3px solid #CD7F32;
+    background: linear-gradient(135deg, #FFF8DC, #CD7F32);
+    box-shadow: 0 4px 20px rgba(205, 127, 50, 0.3);
+}
+
+.team-ranking-card.rank-1 {
+    border: 3px solid #FFD700;
+    background: linear-gradient(135deg, #FFF8DC, #FFD700);
+    box-shadow: 0 4px 20px rgba(255, 215, 0, 0.3);
+}
+
+.team-ranking-card.rank-2 {
+    border: 3px solid #C0C0C0;
+    background: linear-gradient(135deg, #F8F8FF, #C0C0C0);
+    box-shadow: 0 4px 20px rgba(192, 192, 192, 0.3);
+}
+
+.team-ranking-card.rank-3 {
+    border: 3px solid #CD7F32;
+    background: linear-gradient(135deg, #FFF8DC, #CD7F32);
+    box-shadow: 0 4px 20px rgba(205, 127, 50, 0.3);
+}
+
 /* Game Details */
 .game-details {
     padding: 20px;
