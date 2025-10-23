@@ -1216,9 +1216,6 @@ class TarneebTracker {
 
     // Photo Enlargement
     showEnlargedPhoto(photoSrc) {
-        console.log('=== showEnlargedPhoto called ===');
-        console.log('photoSrc:', photoSrc);
-
         // Create a completely new modal overlay
         const existingModal = document.getElementById('photoModal');
         if (existingModal) {
@@ -1266,9 +1263,18 @@ class TarneebTracker {
             border: none;
             font-size: 30px;
             cursor: pointer;
-            color: #666;
+            color: #dc3545;
             z-index: 100000;
+            transition: color 0.2s ease;
         `;
+
+        // Add hover effect
+        closeBtn.onmouseenter = () => {
+            closeBtn.style.color = '#c82333';
+        };
+        closeBtn.onmouseleave = () => {
+            closeBtn.style.color = '#dc3545';
+        };
 
         // Create photo
         const photo = document.createElement('img');
@@ -1296,9 +1302,6 @@ class TarneebTracker {
                 modal.remove();
             }
         };
-
-        console.log('New modal created and shown');
-        console.log('=== end showEnlargedPhoto ===');
     }
 
     hidePhotoModal() {
@@ -1926,8 +1929,6 @@ class TarneebTracker {
                 const src = photoEl.getAttribute('src');
                 if (!src) return;
                 e.preventDefault();
-                // Minimal trace to verify click in production
-                console.debug('game-photo clicked:', src);
                 if (typeof window.showPhoto === 'function') {
                     window.showPhoto(src);
                 } else if (window.tracker && typeof window.tracker.showEnlargedPhoto === 'function') {
