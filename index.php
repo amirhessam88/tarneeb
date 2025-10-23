@@ -57,14 +57,14 @@
             </div>
 
             <div class="records-section">
-                <h2>Player Records</h2>
+                <h2>Player Rankings (by Score)</h2>
                 <div id="playerRecords" class="player-records">
                     <!-- Player records will be populated here -->
                 </div>
             </div>
 
             <div class="teams-section">
-                <h2>Best Teams</h2>
+                <h2>Team Rankings (by Score)</h2>
                 <div id="teamRankings" class="team-rankings">
                     <!-- Team rankings will be populated here -->
                 </div>

@@ -329,7 +329,7 @@ class TarneebTracker {
                     // Team 1 players
                     game.team1Players.forEach(player => {
                         if (!playerStats[player]) {
-                            playerStats[player] = { wins: 0, losses: 0, draws: 0, incomplete: 0, games: 0, kaboots: 0 };
+                            playerStats[player] = { wins: 0, losses: 0, draws: 0, incomplete: 0, games: 0, kaboots: 0, score: 0 };
                         }
                         playerStats[player].games++;
                         if (team1Won) playerStats[player].wins++;
@@ -348,16 +348,17 @@ class TarneebTracker {
                         }
                         else if (isIncomplete) playerStats[player].incomplete++;
 
-                        // Add kaboots for Team 1 players
+                        // Add kaboots and scores for Team 1 players
                         game.rounds.forEach(round => {
                             playerStats[player].kaboots += round.team1Kaboots || 0;
+                            playerStats[player].score += round.team1Score || 0;
                         });
                     });
 
                     // Team 2 players
                     game.team2Players.forEach(player => {
                         if (!playerStats[player]) {
-                            playerStats[player] = { wins: 0, losses: 0, draws: 0, incomplete: 0, games: 0, kaboots: 0 };
+                            playerStats[player] = { wins: 0, losses: 0, draws: 0, incomplete: 0, games: 0, kaboots: 0, score: 0 };
                         }
                         playerStats[player].games++;
                         if (team2Won) playerStats[player].wins++;
@@ -376,9 +377,10 @@ class TarneebTracker {
                         }
                         else if (isIncomplete) playerStats[player].incomplete++;
 
-                        // Add kaboots for Team 2 players
+                        // Add kaboots and scores for Team 2 players
                         game.rounds.forEach(round => {
                             playerStats[player].kaboots += round.team2Kaboots || 0;
+                            playerStats[player].score += round.team2Score || 0;
                         });
                     });
                 } else {
@@ -389,23 +391,29 @@ class TarneebTracker {
                     // Team 1 players
                     game.team1Players.forEach(player => {
                         if (!playerStats[player]) {
-                            playerStats[player] = { wins: 0, losses: 0, draws: 0, incomplete: 0, games: 0, kaboots: 0 };
+                            playerStats[player] = { wins: 0, losses: 0, draws: 0, incomplete: 0, games: 0, kaboots: 0, score: 0 };
                         }
                         playerStats[player].games++;
                         if (team1Won) playerStats[player].wins++;
                         else if (team2Won) playerStats[player].losses++;
                         else playerStats[player].draws++;
+
+                        // Add score for legacy format
+                        playerStats[player].score += game.team1Score || 0;
                     });
 
                     // Team 2 players
                     game.team2Players.forEach(player => {
                         if (!playerStats[player]) {
-                            playerStats[player] = { wins: 0, losses: 0, draws: 0, incomplete: 0, games: 0, kaboots: 0 };
+                            playerStats[player] = { wins: 0, losses: 0, draws: 0, incomplete: 0, games: 0, kaboots: 0, score: 0 };
                         }
                         playerStats[player].games++;
                         if (team2Won) playerStats[player].wins++;
                         else if (team1Won) playerStats[player].losses++;
                         else playerStats[player].draws++;
+
+                        // Add score for legacy format
+                        playerStats[player].score += game.team2Score || 0;
                     });
                 }
             } else {
@@ -430,11 +438,11 @@ class TarneebTracker {
             return;
         }
 
-        // Sort players by win rate (wins / total games)
+        // Sort players by total score (highest first)
         const sortedPlayers = Object.entries(playerStats).sort((a, b) => {
-            const aWinRate = a[1].games > 0 ? a[1].wins / a[1].games : 0;
-            const bWinRate = b[1].games > 0 ? b[1].wins / b[1].games : 0;
-            return bWinRate - aWinRate;
+            const aScore = a[1].score || 0;
+            const bScore = b[1].score || 0;
+            return bScore - aScore;
         });
 
         recordsContainer.innerHTML = sortedPlayers.map(([playerName, stats]) => {
@@ -464,6 +472,10 @@ class TarneebTracker {
                         <div class="stat-item">
                             <span class="stat-value">${stats.kaboots || 0}</span>
                             <span class="stat-label">Kaboots</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value">${stats.score || 0}</span>
+                            <span class="stat-label">Score</span>
                         </div>
                         <div class="stat-item">
                             <span class="stat-value">${stats.games}</span>
@@ -512,7 +524,8 @@ class TarneebTracker {
                             draws: 0,
                             incomplete: 0,
                             games: 0,
-                            kaboots: 0
+                            kaboots: 0,
+                            score: 0
                         };
                     }
                     if (!teamStats[team2Name]) {
@@ -523,7 +536,8 @@ class TarneebTracker {
                             draws: 0,
                             incomplete: 0,
                             games: 0,
-                            kaboots: 0
+                            kaboots: 0,
+                            score: 0
                         };
                     }
 
@@ -557,10 +571,12 @@ class TarneebTracker {
                         teamStats[team2Name].incomplete++;
                     }
 
-                    // Add kaboots for both teams
+                    // Add kaboots and scores for both teams
                     game.rounds.forEach(round => {
                         teamStats[team1Name].kaboots += round.team1Kaboots || 0;
                         teamStats[team2Name].kaboots += round.team2Kaboots || 0;
+                        teamStats[team1Name].score += round.team1Score || 0;
+                        teamStats[team2Name].score += round.team2Score || 0;
                     });
                 } else {
                     // Legacy single-score format
@@ -580,7 +596,8 @@ class TarneebTracker {
                             draws: 0,
                             incomplete: 0,
                             games: 0,
-                            kaboots: 0
+                            kaboots: 0,
+                            score: 0
                         };
                     }
                     if (!teamStats[team2Name]) {
@@ -591,7 +608,8 @@ class TarneebTracker {
                             draws: 0,
                             incomplete: 0,
                             games: 0,
-                            kaboots: 0
+                            kaboots: 0,
+                            score: 0
                         };
                     }
 
@@ -606,6 +624,10 @@ class TarneebTracker {
                         teamStats[team2Name].wins++;
                         teamStats[team1Name].losses++;
                     }
+
+                    // Add scores for legacy format
+                    teamStats[team1Name].score += game.team1Score || 0;
+                    teamStats[team2Name].score += game.team2Score || 0;
                 }
             }
         });
@@ -627,18 +649,11 @@ class TarneebTracker {
             return;
         }
 
-        // Sort teams by win rate (wins / total games), then by total wins
+        // Sort teams by total score (highest first)
         const sortedTeams = Object.entries(teamStats).sort((a, b) => {
-            const aWinRate = a[1].games > 0 ? a[1].wins / a[1].games : 0;
-            const bWinRate = b[1].games > 0 ? b[1].wins / b[1].games : 0;
-
-            // First sort by win rate
-            if (Math.abs(aWinRate - bWinRate) > 0.001) {
-                return bWinRate - aWinRate;
-            }
-
-            // If win rates are equal, sort by total wins
-            return b[1].wins - a[1].wins;
+            const aScore = a[1].score || 0;
+            const bScore = b[1].score || 0;
+            return bScore - aScore;
         });
 
         rankingsContainer.innerHTML = sortedTeams.map(([teamName, stats], index) => {
@@ -675,6 +690,10 @@ class TarneebTracker {
                         <div class="team-stat-item">
                             <span class="team-stat-value">${stats.kaboots || 0}</span>
                             <span class="team-stat-label">Kaboots</span>
+                        </div>
+                        <div class="team-stat-item">
+                            <span class="team-stat-value">${stats.score || 0}</span>
+                            <span class="team-stat-label">Score</span>
                         </div>
                         <div class="team-stat-item">
                             <span class="team-stat-value">${stats.games}</span>

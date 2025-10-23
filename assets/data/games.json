@@ -21,7 +21,7 @@
             ],
             "gameDate": "2025-10-22",
             "photos": [
-                "assets\/photos\/68f98acc3e004_1761184460.jpg"
+                "assets\/photos\/68f98ca22d3e5_1761184930.jpg"
             ],
             "createdAt": "2025-10-22T21:19:20.510Z",
             "winner": "incomplete_team1_win",
@@ -32,7 +32,7 @@
                     "team2Score": -19
                 }
             ],
-            "photo": "assets\/photos\/68f98acc3e004_1761184460.jpg"
+            "photo": "assets\/photos\/68f98ca22d3e5_1761184930.jpg"
         },
         {
             "id": "1761174099947",
@@ -149,6 +149,6 @@
             ]
         }
     ],
-    "lastUpdated": "2025-10-23T01:54:20+00:00",
+    "lastUpdated": "2025-10-23T02:02:10+00:00",
     "version": "1.0"
 }
