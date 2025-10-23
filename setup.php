@@ -10,8 +10,8 @@ if (!in_array($_SERVER['REMOTE_ADDR'], $allowedIPs) && !isset($_GET['force'])) {
 }
 
 if ($_POST) {
-    $username = $_POST['username'] ?? '';
-    $password = $_POST['password'] ?? '';
+    $username = isset($_POST['username']) ? $_POST['username'] : '';
+    $password = isset($_POST['password']) ? $_POST['password'] : '';
     $passwordHash = password_hash($password, PASSWORD_DEFAULT);
     
     echo "<!DOCTYPE html><html><head><title>Setup Complete</title></head><body>";

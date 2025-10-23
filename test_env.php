@@ -126,7 +126,7 @@ ini_set('display_errors', 1);
     <div class='info'>
         <h3>🔍 Debug Information</h3>
         <p><strong>PHP Version:</strong> <?php echo PHP_VERSION; ?></p>
-        <p><strong>Server:</strong> <?php echo $_SERVER['SERVER_SOFTWARE'] ?? 'Unknown'; ?></p>
+        <p><strong>Server:</strong> <?php echo isset($_SERVER['SERVER_SOFTWARE']) ? $_SERVER['SERVER_SOFTWARE'] : 'Unknown'; ?></p>
         <p><strong>Document Root:</strong> <?php echo $_SERVER['DOCUMENT_ROOT']; ?></p>
         <p><strong>Current Directory:</strong> <?php echo getcwd(); ?></p>
     </div>

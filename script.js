@@ -26,14 +26,17 @@ class TarneebTracker {
         this.configLoading = true;
 
         try {
-            // Authentication is handled server-side via environment variables
-            console.log('Using server-side authentication');
+            // Load games first (public operation)
+            console.log('Loading games...');
+            await this.loadGames();
+            
+            // Then check authentication (optional)
+            console.log('Checking authentication...');
             await this.checkAuth();
-            this.loadGames();
         } catch (error) {
             console.error('Error in loadConfig:', error);
-            await this.checkAuth();
-            this.loadGames();
+            // Still try to load games even if auth fails
+            await this.loadGames();
         } finally {
             this.configLoading = false;
         }
@@ -46,14 +49,22 @@ class TarneebTracker {
             try {
                 // Verify authentication with server
                 const response = await fetch('api.php?action=auth-status');
-                const result = await response.json();
-
-                if (result.authenticated) {
-                    this.currentUser = JSON.parse(user);
-                    this.showAdminControls();
-                    this.renderGames(); // Re-render games to show edit buttons
+                if (response.ok) {
+                    const result = await response.json();
+                    
+                    if (result.authenticated) {
+                        this.currentUser = JSON.parse(user);
+                        this.showAdminControls();
+                        this.renderGames(); // Re-render games to show edit buttons
+                    } else {
+                        // Server says not authenticated, clear local state
+                        this.currentUser = null;
+                        localStorage.removeItem('tarneeb_user');
+                        this.hideAdminControls();
+                    }
                 } else {
-                    // Server says not authenticated, clear local state
+                    // Server error, assume not authenticated for security
+                    console.warn('Auth check failed with status:', response.status);
                     this.currentUser = null;
                     localStorage.removeItem('tarneeb_user');
                     this.hideAdminControls();
@@ -107,12 +118,12 @@ class TarneebTracker {
                 return true;
             } else {
                 console.log('Login failed:', result.message);
-                this.showMessage(result.message || 'Login failed', 'error');
+                this.showNotification(result.message || 'Login failed', 'error');
                 return false;
             }
         } catch (error) {
             console.error('Login error:', error);
-            this.showMessage('Login failed due to network error', 'error');
+            this.showNotification('Login failed due to network error', 'error');
             return false;
         }
     }
