@@ -870,7 +870,9 @@ class TarneebTracker {
 
     // Modal Management
     showGameModal(gameId = null) {
+        console.log('showGameModal called with gameId:', gameId);
         if (!this.currentUser) {
+            console.log('No current user in showGameModal');
             this.showLoginModal();
             return;
         }
@@ -880,8 +882,16 @@ class TarneebTracker {
         const modalTitle = document.getElementById('modalTitle');
         const form = document.getElementById('gameForm');
 
+        console.log('Modal element found:', !!modal);
+        console.log('Modal title found:', !!modalTitle);
+        console.log('Form found:', !!form);
+
         if (gameId) {
             const game = this.games.find(g => g.id === gameId);
+            console.log('Game found for editing:', !!game);
+            if (game) {
+                console.log('Game data:', game);
+            }
             modalTitle.textContent = 'Edit Game';
             this.populateGameForm(game);
         } else {
@@ -908,6 +918,8 @@ class TarneebTracker {
         }
 
         modal.classList.add('active');
+        console.log('Modal classes after adding active:', modal.className);
+        console.log('Modal display style:', window.getComputedStyle(modal).display);
 
         // Setup autocomplete for player inputs and round button
         setTimeout(() => {
@@ -1818,10 +1830,13 @@ class TarneebTracker {
 
     // Public methods for onclick handlers
     editGame(gameId) {
+        console.log('editGame called with gameId:', gameId);
         if (!this.currentUser) {
+            console.log('No current user, showing login modal');
             this.showLoginModal();
             return;
         }
+        console.log('Current user found, calling showGameModal');
         this.showGameModal(gameId);
     }
 
