@@ -1261,7 +1261,7 @@ class TarneebTracker {
             right: 15px;
             background: none;
             border: none;
-            font-size: 30px;
+            font-size: 60px;
             cursor: pointer;
             color: #dc3545;
             z-index: 100000;
