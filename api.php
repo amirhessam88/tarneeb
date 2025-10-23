@@ -303,9 +303,9 @@ switch ($method) {
                     break;
                 }
                 
-                $username = $input['username'] ?? '';
-                $password = $input['password'] ?? '';
-                $csrfToken = $input['csrf_token'] ?? '';
+                $username = isset($input['username']) ? $input['username'] : '';
+                $password = isset($input['password']) ? $input['password'] : '';
+                $csrfToken = isset($input['csrf_token']) ? $input['csrf_token'] : '';
                 
                 // Validate CSRF token
                 if (!validateCSRFToken($csrfToken)) {
@@ -315,13 +315,19 @@ switch ($method) {
                 }
                 
                 // Check rate limiting
-                $ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+                $ip = isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : 'unknown';
                 if (!checkRateLimit($ip)) {
                     echo json_encode(['success' => false, 'message' => 'Too many login attempts. Please try again later.']);
                     break;
                 }
                 
                 // Authenticate user
+                $config = loadConfig();
+                if (!$config) {
+                    echo json_encode(['success' => false, 'message' => 'Configuration not set up. Please set environment variables.']);
+                    break;
+                }
+                
                 if (authenticateUser($username, $password)) {
                     $_SESSION['authenticated'] = true;
                     $_SESSION['username'] = $username;

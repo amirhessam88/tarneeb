@@ -65,7 +65,7 @@ ini_set('display_errors', 1);
                 echo "<div class='success'>✅ Games endpoint working</div>";
                 echo "<div class='info'>";
                 echo "<strong>Games count:</strong> " . count($data['games']) . "<br>";
-                echo "<strong>Version:</strong> " . ($data['version'] ?? 'Unknown') . "<br>";
+                echo "<strong>Version:</strong> " . (isset($data['version']) ? $data['version'] : 'Unknown') . "<br>";
                 echo "</div>";
             } else {
                 echo "<div class='error'>❌ Games endpoint returned invalid data</div>";
