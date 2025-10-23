@@ -1831,7 +1831,10 @@ class TarneebTracker {
             return;
         }
         if (confirm('Are you sure you want to delete this game?')) {
-            this.deleteGame(gameId);
+            this.games = this.games.filter(game => game.id !== gameId);
+            this.saveGames();
+            this.updateStats();
+            this.renderGames();
         }
     }
 
