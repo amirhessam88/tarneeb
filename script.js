@@ -1237,6 +1237,13 @@ class TarneebTracker {
         // Show the modal
         modal.classList.add('active');
         modal.style.display = 'flex'; // Force display
+        modal.style.zIndex = '9999'; // Force high z-index
+        modal.style.position = 'fixed'; // Force fixed positioning
+        modal.style.top = '0';
+        modal.style.left = '0';
+        modal.style.width = '100%';
+        modal.style.height = '100%';
+        modal.style.backgroundColor = 'rgba(0, 0, 0, 0.8)'; // Force background
 
         console.log('Modal classes after adding active:', modal.className);
         console.log('Modal style display:', modal.style.display);
