@@ -1219,70 +1219,85 @@ class TarneebTracker {
         console.log('=== showEnlargedPhoto called ===');
         console.log('photoSrc:', photoSrc);
 
-        const modal = document.getElementById('photoModal');
-        const photo = document.getElementById('enlargedPhoto');
-
-        console.log('Modal found:', !!modal);
-        console.log('Photo element found:', !!photo);
-
-        if (!modal || !photo) {
-            console.error('Photo modal elements not found');
-            return;
+        // Create a completely new modal overlay
+        const existingModal = document.getElementById('photoModal');
+        if (existingModal) {
+            existingModal.remove();
         }
 
-        // Set the photo source
+        // Create new modal
+        const modal = document.createElement('div');
+        modal.id = 'photoModal';
+        modal.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: rgba(0, 0, 0, 0.9);
+            z-index: 99999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        `;
+
+        // Create modal content
+        const modalContent = document.createElement('div');
+        modalContent.style.cssText = `
+            position: relative;
+            max-width: 90vw;
+            max-height: 90vh;
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            cursor: default;
+        `;
+
+        // Create close button
+        const closeBtn = document.createElement('button');
+        closeBtn.innerHTML = '&times;';
+        closeBtn.style.cssText = `
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            background: none;
+            border: none;
+            font-size: 30px;
+            cursor: pointer;
+            color: #666;
+            z-index: 100000;
+        `;
+
+        // Create photo
+        const photo = document.createElement('img');
         photo.src = photoSrc;
-        console.log('Photo src set to:', photo.src);
+        photo.style.cssText = `
+            max-width: 100%;
+            max-height: 80vh;
+            display: block;
+            margin: 0 auto;
+        `;
 
-        // Show the modal
-        modal.classList.add('active');
-        modal.style.display = 'flex'; // Force display
-        modal.style.zIndex = '9999'; // Force high z-index
-        modal.style.position = 'fixed'; // Force fixed positioning
-        modal.style.top = '0';
-        modal.style.left = '0';
-        modal.style.width = '100vw';
-        modal.style.height = '100vh';
-        modal.style.backgroundColor = 'rgba(0, 0, 0, 0.8)'; // Force background
+        // Assemble modal
+        modalContent.appendChild(closeBtn);
+        modalContent.appendChild(photo);
+        modal.appendChild(modalContent);
+        document.body.appendChild(modal);
 
-        // Ensure the modal content is visible
-        const modalContent = modal.querySelector('.modal-content');
-        if (modalContent) {
-            modalContent.style.maxWidth = '90vw';
-            modalContent.style.maxHeight = '90vh';
-            modalContent.style.width = 'auto';
-            modalContent.style.height = 'auto';
-            modalContent.style.margin = 'auto';
-        }
+        // Add event listeners
+        closeBtn.onclick = () => {
+            modal.remove();
+        };
 
-        console.log('Modal classes after adding active:', modal.className);
-        console.log('Modal style display:', modal.style.display);
-        console.log('Modal computed style display:', window.getComputedStyle(modal).display);
+        modal.onclick = (e) => {
+            if (e.target === modal) {
+                modal.remove();
+            }
+        };
 
-        // Check positioning and z-index
-        const computedStyle = window.getComputedStyle(modal);
-        console.log('Modal position:', computedStyle.position);
-        console.log('Modal z-index:', computedStyle.zIndex);
-        console.log('Modal top:', computedStyle.top);
-        console.log('Modal left:', computedStyle.left);
-        console.log('Modal width:', computedStyle.width);
-        console.log('Modal height:', computedStyle.height);
-        console.log('Modal visibility:', computedStyle.visibility);
-        console.log('Modal opacity:', computedStyle.opacity);
-
-        // Check if modal is actually in viewport
-        const rect = modal.getBoundingClientRect();
-        console.log('Modal bounding rect:', rect);
-        console.log('Modal is in viewport:', rect.top >= 0 && rect.left >= 0 && rect.bottom <= window.innerHeight && rect.right <= window.innerWidth);
-
-        // Check modal content dimensions
-        if (modalContent) {
-            const contentRect = modalContent.getBoundingClientRect();
-            console.log('Modal content bounding rect:', contentRect);
-            console.log('Modal content width:', contentRect.width);
-            console.log('Modal content height:', contentRect.height);
-        }
-
+        console.log('New modal created and shown');
         console.log('=== end showEnlargedPhoto ===');
     }
 
