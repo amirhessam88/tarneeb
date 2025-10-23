@@ -223,27 +223,6 @@
 
     <script src="script.js"></script>
 
-    <!-- Test Edit Function -->
-    <div
-        style="position: fixed; bottom: 20px; right: 20px; background: white; padding: 10px; border: 2px solid blue; z-index: 9999;">
-        <button onclick="testEditFunction()" style="padding: 10px;">Test
-            Edit</button>
-    </div>
-
-    <script>
-        function testEditFunction() {
-            console.log('Test edit button clicked');
-            console.log('tracker available:', !!window.tracker);
-            console.log('editGame function available:', !!(window.tracker && window.tracker.editGame));
-
-            if (window.tracker && window.tracker.editGame) {
-                // Test with a fake game ID
-                window.tracker.editGame('test-game-id');
-            } else {
-                console.error('Tracker or editGame function not available');
-            }
-        }
-    </script>
 
 </body>
 
