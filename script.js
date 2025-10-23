@@ -930,22 +930,41 @@ class TarneebTracker {
     }
 
     hideGameModal() {
-        document.getElementById('gameModal').classList.remove('active');
+        const modal = document.getElementById('gameModal');
+        if (modal) {
+            modal.classList.remove('active');
+            modal.style.display = 'none';
+        }
         this.editingGameId = null;
     }
 
     populateGameForm(game) {
-        // Handle both old format and new team format
-        if (game.team1Players && game.team2Players) {
-            // New team format
+        // Handle rounds-based format (current format)
+        if (game.rounds && game.rounds.length > 0) {
+            // Load rounds data
+            this.rounds = game.rounds;
+            this.renderRounds();
+
+            // Load team players from first round
+            const firstRound = game.rounds[0];
+            if (firstRound) {
+                document.getElementById('team1Player1').value = firstRound.team1Players[0] || '';
+                document.getElementById('team1Player2').value = firstRound.team1Players[1] || '';
+                document.getElementById('team2Player1').value = firstRound.team2Players[0] || '';
+                document.getElementById('team2Player2').value = firstRound.team2Players[1] || '';
+            }
+        }
+        // Handle old team format
+        else if (game.team1Players && game.team2Players) {
             document.getElementById('team1Player1').value = game.team1Players[0];
             document.getElementById('team1Player2').value = game.team1Players[1];
             document.getElementById('team2Player1').value = game.team2Players[0];
             document.getElementById('team2Player2').value = game.team2Players[1];
             document.getElementById('team1Score').value = game.team1Score;
             document.getElementById('team2Score').value = game.team2Score;
-        } else {
-            // Legacy individual player format - convert to team format
+        }
+        // Handle legacy individual player format
+        else {
             document.getElementById('team1Player1').value = game.player1 || '';
             document.getElementById('team1Player2').value = game.player2 || '';
             document.getElementById('team2Player1').value = game.player3 || '';
@@ -956,7 +975,13 @@ class TarneebTracker {
 
         document.getElementById('gameDate').value = game.gameDate;
 
-        if (game.photo) {
+        // Handle photos
+        if (game.photos && game.photos.length > 0) {
+            const photosHtml = game.photos.map(photo =>
+                `<img src="${photo}" alt="Game photo" style="max-width: 200px; max-height: 200px; border-radius: 8px; margin: 5px;">`
+            ).join('');
+            document.getElementById('photoPreview').innerHTML = photosHtml;
+        } else if (game.photo) {
             document.getElementById('photoPreview').innerHTML = `
                 <img src="assets/${game.photo}" alt="Current photo" style="max-width: 200px; max-height: 200px; border-radius: 8px;">
             `;
