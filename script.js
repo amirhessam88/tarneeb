@@ -15,10 +15,25 @@ class TarneebTracker {
             'Joseph', 'Lester', 'Osama', 'Raquel', 'Youssef', 'Zena'
         ];
 
-        this.initializeEventListeners();
-        this.loadConfig();
-        this.initializeRounds();
+        this.tournamentRounds = [];
         this.initialized = true;
+
+        // Initialize immediately
+        setTimeout(() => {
+            this.initializeEventListeners();
+            this.initializeRounds();
+            this.loadConfig();
+        }, 100);
+    }
+
+    isTournamentPage() {
+        const pathCheck = window.location.pathname.includes('tournament.html');
+        // Check if tournamentBracket is in the main content (tournament.html) or in a modal (index.html)
+        const bracketEl = document.getElementById('tournamentBracket');
+        const isMainBracket = bracketEl && !bracketEl.closest('.modal');
+        const isTournament = pathCheck || isMainBracket;
+        console.log('isTournamentPage check:', { pathCheck, isMainBracket, isTournament, pathname: window.location.pathname });
+        return isTournament;
     }
 
     async loadConfig() {
@@ -26,13 +41,19 @@ class TarneebTracker {
         this.configLoading = true;
 
         try {
-            // Load games first (public operation)
+            // Load games first (public operation) - do this for all pages that need it
             console.log('Loading games...');
             await this.loadGames();
-            
+
             // Then check authentication (optional)
             console.log('Checking authentication...');
             await this.checkAuth();
+
+            // If on tournament page, render bracket after everything is loaded
+            if (this.isTournamentPage()) {
+                console.log('Rendering tournament bracket...');
+                this.renderTournamentBracket();
+            }
         } catch (error) {
             console.error('Error in loadConfig:', error);
             // Still try to load games even if auth fails
@@ -51,11 +72,14 @@ class TarneebTracker {
                 const response = await fetch('api.php?action=auth-status');
                 if (response.ok) {
                     const result = await response.json();
-                    
+
                     if (result.authenticated) {
                         this.currentUser = JSON.parse(user);
                         this.showAdminControls();
-                        this.renderGames(); // Re-render games to show edit buttons
+                        // Re-render based on current page - but only if needed
+                        if (!this.isTournamentPage()) {
+                            this.renderGames(); // Re-render games to show edit buttons
+                        }
                     } else {
                         // Server says not authenticated, clear local state
                         this.currentUser = null;
@@ -114,7 +138,10 @@ class TarneebTracker {
                 localStorage.setItem('tarneeb_user', JSON.stringify(this.currentUser));
                 this.showAdminControls();
                 this.hideLoginModal();
-                this.renderGames(); // Re-render games to show edit buttons
+                // Only re-render on main page, tournament bracket is already rendered
+                if (!this.isTournamentPage()) {
+                    this.renderGames(); // Re-render games to show edit buttons
+                }
                 return true;
             } else {
                 console.log('Login failed:', result.message);
@@ -153,19 +180,38 @@ class TarneebTracker {
 
     // Screen Management
     showMainScreen() {
-        document.getElementById('mainScreen').classList.add('active');
-        this.updateStats();
-        this.renderGames();
+        console.log('showMainScreen called');
+        const mainScreen = document.getElementById('mainScreen');
+        if (mainScreen) {
+            console.log('Main screen element found, adding active class');
+            mainScreen.classList.add('active');
+        } else {
+            console.error('Main screen element NOT found!');
+        }
+
+        // Always update and render on main page
+        if (!this.isTournamentPage()) {
+            console.log('Not tournament page, updating stats and rendering games');
+            console.log('Current games count:', this.games.length);
+            this.updateStats();
+            this.renderGames();
+        } else {
+            console.log('On tournament page, skipping main page render');
+        }
     }
 
     showAdminControls() {
-        document.getElementById('adminLoginBtn').style.display = 'none';
-        document.getElementById('adminControls').style.display = 'flex';
+        const adminLoginBtn = document.getElementById('adminLoginBtn');
+        const adminControls = document.getElementById('adminControls');
+        if (adminLoginBtn) adminLoginBtn.style.display = 'none';
+        if (adminControls) adminControls.style.display = 'flex';
     }
 
     hideAdminControls() {
-        document.getElementById('adminLoginBtn').style.display = 'block';
-        document.getElementById('adminControls').style.display = 'none';
+        const adminLoginBtn = document.getElementById('adminLoginBtn');
+        const adminControls = document.getElementById('adminControls');
+        if (adminLoginBtn) adminLoginBtn.style.display = 'block';
+        if (adminControls) adminControls.style.display = 'none';
     }
 
     showLoginModal() {
@@ -226,25 +272,44 @@ class TarneebTracker {
 
     // Data Management
     async loadGames() {
-        if (this.gamesLoading) return;
+        if (this.gamesLoading) {
+            console.log('loadGames already in progress, skipping...');
+            return;
+        }
         this.gamesLoading = true;
 
+        console.log('=== Starting loadGames ===');
+
         try {
-            const response = await fetch(`${this.apiBase}?action=games&v=${Date.now()}`);
+            console.log('Loading games from API...', this.apiBase);
+            const url = `${this.apiBase}?action=games&v=${Date.now()}`;
+            console.log('Fetching:', url);
+            const response = await fetch(url);
+
+            console.log('Response status:', response.status);
 
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
 
             const data = await response.json();
+            console.log('API returned:', data);
+            console.log('Games loaded:', data.games?.length || 0);
             this.games = data.games || [];
+            console.log('Setting this.games to:', this.games.length);
+
+            // Call update and render
+            console.log('Calling updateStats...');
             this.updateStats();
+            console.log('Calling renderGames...');
             this.renderGames();
+            console.log('=== loadGames completed ===');
         } catch (error) {
             console.error('Error loading games:', error);
             // Fallback to localStorage for offline mode
             const games = localStorage.getItem('tarneeb_games');
             this.games = games ? JSON.parse(games) : [];
+            console.log('Loaded from localStorage:', this.games.length);
             this.updateStats();
             this.renderGames();
         } finally {
@@ -366,6 +431,13 @@ class TarneebTracker {
 
     // Statistics
     updateStats() {
+        if (this.isTournamentPage()) return; // Don't update stats on tournament page
+
+        const totalGamesEl = document.getElementById('totalGames');
+        const monthlyGamesEl = document.getElementById('monthlyGames');
+
+        if (!totalGamesEl || !monthlyGamesEl) return; // Elements don't exist on tournament page
+
         const totalGames = this.games.length;
         const currentMonth = new Date().getMonth();
         const currentYear = new Date().getFullYear();
@@ -375,8 +447,8 @@ class TarneebTracker {
             return gameDate.getMonth() === currentMonth && gameDate.getFullYear() === currentYear;
         }).length;
 
-        document.getElementById('totalGames').textContent = totalGames;
-        document.getElementById('monthlyGames').textContent = monthlyGames;
+        totalGamesEl.textContent = totalGames;
+        monthlyGamesEl.textContent = monthlyGames;
 
         this.updatePlayerRecords();
         this.updateTeamRankings();
@@ -497,8 +569,12 @@ class TarneebTracker {
     }
 
     updatePlayerRecords() {
+        if (this.isTournamentPage()) return;
+
         const playerStats = this.calculatePlayerRecords();
         const recordsContainer = document.getElementById('playerRecords');
+
+        if (!recordsContainer) return; // Don't render if element doesn't exist
 
         if (Object.keys(playerStats).length === 0) {
             recordsContainer.innerHTML = `
@@ -710,8 +786,12 @@ class TarneebTracker {
     }
 
     updateTeamRankings() {
+        if (this.isTournamentPage()) return;
+
         const teamStats = this.calculateTeamRankings();
         const rankingsContainer = document.getElementById('teamRankings');
+
+        if (!rankingsContainer) return; // Don't render if element doesn't exist
 
         if (Object.keys(teamStats).length === 0) {
             rankingsContainer.innerHTML = `
@@ -784,9 +864,17 @@ class TarneebTracker {
 
     // Rendering
     renderGames() {
+        console.log('renderGames called, games count:', this.games.length);
         const gamesList = document.getElementById('gamesList');
+        if (!gamesList) {
+            console.log('gamesList element not found');
+            return; // Don't render if not on main page
+        }
+
+        console.log('gamesList element found');
 
         if (this.games.length === 0) {
+            console.log('No games, showing empty state');
             gamesList.innerHTML = `
                 <div class="empty-state">
                     <h3>No games yet</h3>
@@ -796,9 +884,11 @@ class TarneebTracker {
             return;
         }
 
+        console.log('Rendering', this.games.length, 'games');
         // Sort games by date (newest first)
-        const sortedGames = this.games.sort((a, b) => new Date(b.gameDate) - new Date(a.gameDate));
+        const sortedGames = [...this.games].sort((a, b) => new Date(b.gameDate) - new Date(a.gameDate));
         gamesList.innerHTML = sortedGames.map(game => this.renderGameCard(game)).join('');
+        console.log('Games rendered successfully');
     }
 
     renderGameCard(game) {
@@ -1392,7 +1482,7 @@ class TarneebTracker {
         const trimmed = input.trim();
         if (!trimmed) return '';
 
-        // Find exact match (case insensitive)
+        // Find exact match (case insensitive) - only replace if EXACT match
         const exactMatch = this.frequentPlayers.find(player =>
             player.toLowerCase() === trimmed.toLowerCase()
         );
@@ -1401,18 +1491,18 @@ class TarneebTracker {
             return exactMatch; // Return with proper capitalization
         }
 
-        // Find partial match
-        const partialMatch = this.frequentPlayers.find(player =>
-            player.toLowerCase().includes(trimmed.toLowerCase()) ||
-            trimmed.toLowerCase().includes(player.toLowerCase())
-        );
+        // Don't do partial matches - preserve the original input
+        // This prevents truncating "amir1" to just "amir"
 
-        if (partialMatch) {
-            return partialMatch; // Return with proper capitalization
-        }
+        // Just capitalize properly and return the original
+        // Handle mixed case: "AmIr" -> "Amir", "AMIR1" -> "Amir1"
+        const words = trimmed.split(/[\s-_]+/); // Split on space, underscore, or dash
+        const capitalized = words.map(word => {
+            // Capitalize first letter, lowercase the rest
+            return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+        }).join(' ');
 
-        // Return original input with proper capitalization
-        return trimmed.charAt(0).toUpperCase() + trimmed.slice(1).toLowerCase();
+        return capitalized;
     }
 
     setupPlayerAutocomplete() {
@@ -1748,6 +1838,14 @@ class TarneebTracker {
             container.appendChild(roundElement);
         });
 
+        // Add event listeners to remove buttons
+        container.querySelectorAll('.remove-round').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const roundId = e.target.dataset.roundId;
+                this.removeRound(roundId);
+            });
+        });
+
         // Add event listeners to score inputs
         this.setupRoundScoreListeners();
 
@@ -1767,7 +1865,7 @@ class TarneebTracker {
         div.innerHTML = `
             <div class="round-header">
                 <h4 class="round-title">Round ${round.number}</h4>
-                <button type="button" class="remove-round" onclick="tracker.removeRound('${round.id}')">Remove</button>
+                        <button type="button" class="remove-round" data-round-id="${round.id}">Remove</button>
             </div>
             <div class="round-scores">
                 <div class="round-score-input">
@@ -1873,8 +1971,527 @@ class TarneebTracker {
         });
     }
 
+    // Tournament Management
+    showTournamentModal() {
+        // Navigate to tournament page
+        window.location.href = 'tournament.html';
+    }
+
+    hideTournamentModal() {
+        const modal = document.getElementById('tournamentModal');
+        if (modal) {
+            modal.classList.remove('active');
+            modal.style.display = 'none';
+        }
+    }
+
+    getTournamentGames() {
+        // Filter games that are tournament games
+        return this.games.filter(game => game.tournamentRound && game.tournamentMatch !== undefined);
+    }
+
+    renderTournamentBracket() {
+        const container = document.getElementById('tournamentBracket');
+        if (!container) return;
+
+        const tournamentGames = this.getTournamentGames();
+
+        // Build bracket structure - split into left and right sides with default labels
+        const bracket = {
+            round16Left: Array(4).fill(null).map((_, i) => ({ team1: null, team2: null, winner: null, side: 'left', defaultLabel: `R16-M${i + 1}` })),
+            round16Right: Array(4).fill(null).map((_, i) => ({ team1: null, team2: null, winner: null, side: 'right', defaultLabel: `R16-M${i + 5}` })),
+            quarterLeft: Array(2).fill(null).map((_, i) => ({ team1: null, team2: null, winner: null, side: 'left', defaultLabel: `QF-M${i + 1}` })),
+            quarterRight: Array(2).fill(null).map((_, i) => ({ team1: null, team2: null, winner: null, side: 'right', defaultLabel: `QF-M${i + 3}` })),
+            semiLeft: { team1: null, team2: null, winner: null, side: 'left', defaultLabel: 'SF-M1' },
+            semiRight: { team1: null, team2: null, winner: null, side: 'right', defaultLabel: 'SF-M2' },
+            thirdPlace: { team1: null, team2: null, winner: null, defaultLabel: '3rd Place' },
+            final: { team1: null, team2: null, winner: null, defaultLabel: 'Final' }
+        };
+
+        // Populate bracket from games
+        tournamentGames.forEach(game => {
+            const round = game.tournamentRound;
+            const matchIdx = game.tournamentMatch;
+
+            // Build team names: team name + players
+            const team1Display = game.team1Name
+                ? `${game.team1Name} (${game.team1Players.join(' & ')})`
+                : (game.team1Players ? game.team1Players.join(' & ') : 'Team 1');
+            const team2Display = game.team2Name
+                ? `${game.team2Name} (${game.team2Players.join(' & ')})`
+                : (game.team2Players ? game.team2Players.join(' & ') : 'Team 2');
+
+            const winner = game.winner === 'team1' ? team1Display : (game.winner === 'team2' ? team2Display : null);
+
+            // Map matchIdx to bracket position (0-3 for left side, 4-7 for right side)
+            const isRightSide = matchIdx >= 4;
+            const normalizedMatchIdx = isRightSide ? matchIdx - 4 : matchIdx;
+
+            if (round === 'round16') {
+                const sideMatches = isRightSide ? bracket.round16Right : bracket.round16Left;
+                if (sideMatches[normalizedMatchIdx]) {
+                    sideMatches[normalizedMatchIdx].team1 = team1Display;
+                    sideMatches[normalizedMatchIdx].team2 = team2Display;
+                    sideMatches[normalizedMatchIdx].winner = winner;
+                    sideMatches[normalizedMatchIdx].game = game;
+                }
+            } else if (round === 'quarterfinals') {
+                const sideMatches = isRightSide ? bracket.quarterRight : bracket.quarterLeft;
+                if (sideMatches[normalizedMatchIdx]) {
+                    sideMatches[normalizedMatchIdx].team1 = team1Display;
+                    sideMatches[normalizedMatchIdx].team2 = team2Display;
+                    sideMatches[normalizedMatchIdx].winner = winner;
+                    sideMatches[normalizedMatchIdx].game = game;
+                }
+            } else if (round === 'semifinals') {
+                const sideMatch = matchIdx >= 2 ? bracket.semiRight : bracket.semiLeft;
+                if (normalizedMatchIdx === 0) {  // Only first semi-final on each side
+                    sideMatch.team1 = team1Display;
+                    sideMatch.team2 = team2Display;
+                    sideMatch.winner = winner;
+                    sideMatch.game = game;
+                }
+            } else if (round === 'thirdplace') {
+                bracket.thirdPlace.team1 = team1Display;
+                bracket.thirdPlace.team2 = team2Display;
+                bracket.thirdPlace.winner = winner;
+                bracket.thirdPlace.game = game;
+            } else if (round === 'final') {
+                bracket.final.team1 = team1Display;
+                bracket.final.team2 = team2Display;
+                bracket.final.winner = winner;
+                bracket.final.game = game;
+            }
+        });
+
+        // Render the bracket in FIFA World Cup style
+        let html = `
+            <div class="bracket-container-fifa">
+                <!-- Round of 16 -->
+                <div class="round-section">
+                    <h2 class="round-title">Round of 16</h2>
+                    <div class="bracket-layout">
+                        <div class="bracket-left-side">
+                            ${this.renderRoundMatches(bracket.round16Left)}
+                        </div>
+                        <div class="bracket-right-side">
+                            ${this.renderRoundMatches(bracket.round16Right)}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Quarterfinals -->
+                <div class="round-section">
+                    <h2 class="round-title">Quarterfinals</h2>
+                    <div class="bracket-layout">
+                        <div class="bracket-left-side">
+                            ${this.renderRoundMatches(bracket.quarterLeft)}
+                        </div>
+                        <div class="bracket-right-side">
+                            ${this.renderRoundMatches(bracket.quarterRight)}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Semifinals -->
+                <div class="round-section">
+                    <h2 class="round-title">Semifinals</h2>
+                    <div class="bracket-layout">
+                        <div class="bracket-left-side">
+                            ${this.renderMatch(bracket.semiLeft)}
+                        </div>
+                        <div class="bracket-right-side">
+                            ${this.renderMatch(bracket.semiRight)}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Third Place Playoff & Final -->
+                <div class="round-section final-section" style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: center;">
+                    <div>
+                        <h2 class="round-title">Third Place Playoff</h2>
+                        <div class="bracket-third-place-container">
+                            ${this.renderThirdPlaceMatch(bracket.thirdPlace)}
+                        </div>
+                    </div>
+                    <div>
+                        <h2 class="round-title">Final</h2>
+                        <div class="bracket-final-container">
+                            ${this.renderFinalMatch(bracket.final)}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        container.innerHTML = html;
+    }
+
+    renderThirdPlaceMatch(thirdPlace) {
+        const team1 = thirdPlace.team1 || 'Loser SF1';
+        const team2 = thirdPlace.team2 || 'Loser SF2';
+        const isTeam1Win = thirdPlace.winner === team1;
+        const isTeam2Win = thirdPlace.winner === team2;
+        const gameLabel = thirdPlace.game?.gameLabel || thirdPlace.defaultLabel || '';
+
+        return `
+            <div class="match-card" style="background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%); border: 3px solid #95a5a6;">
+                <div class="game-label-badge">${gameLabel}</div>
+                <div class="team-cell ${isTeam1Win ? 'winner' : ''}">
+                    <div class="team-name">${team1}</div>
+                    ${thirdPlace.game ? `<div class="score-display" style="color: #95a5a6;">${this.getMatchScore(thirdPlace.game)}</div>` : ''}
+                </div>
+                <div class="match-vs">vs</div>
+                <div class="team-cell ${isTeam2Win ? 'winner' : ''}">
+                    <div class="team-name">${team2}</div>
+                </div>
+            </div>
+        `;
+    }
+
+    renderRoundMatches(matches) {
+        return matches.map((match, idx) => {
+            return this.renderMatch(match);
+        }).join('');
+    }
+
+    renderMatch(match, label) {
+        const team1 = match.team1 || 'TBD';
+        const team2 = match.team2 || 'TBD';
+        const isTeam1Win = match.winner === team1;
+        const isTeam2Win = match.winner === team2;
+        const gameLabel = match.game?.gameLabel || match.defaultLabel || '';
+
+        return `
+            <div class="match-card" data-label="${gameLabel}">
+                <div class="game-label-badge">${gameLabel}</div>
+                <div class="team-cell ${isTeam1Win ? 'winner' : ''}">
+                    <div class="team-name">${team1}</div>
+                    ${match.game ? `<div class="score-display">${this.getMatchScore(match.game)}</div>` : ''}
+                </div>
+                <div class="match-vs">vs</div>
+                <div class="team-cell ${isTeam2Win ? 'winner' : ''}">
+                    <div class="team-name">${team2}</div>
+                </div>
+            </div>
+        `;
+    }
+
+    renderFinalMatch(final) {
+        return this.renderMatch(final, 'Final');
+    }
+
+
+    getMatchScore(game) {
+        if (!game.rounds || game.rounds.length === 0) return '-';
+        const team1Wins = game.roundResults?.filter(r => r.winner === 'team1').length || 0;
+        const team2Wins = game.roundResults?.filter(r => r.winner === 'team2').length || 0;
+        return `${team1Wins}-${team2Wins}`;
+    }
+
+    // Tournament Game Modal Management
+    updateTournamentLabelOptions(round) {
+        const labelSelect = document.getElementById('tournamentGameLabel');
+        if (!labelSelect) return;
+
+        // Get existing games for this round to show which labels are taken
+        const existingGames = this.getTournamentGames().filter(g => g.tournamentRound === round);
+        const usedLabels = new Set(existingGames.map(g => g.gameLabel).filter(Boolean));
+
+        // Clear existing options
+        labelSelect.innerHTML = '<option value="">Select a label...</option>';
+
+        // Add options based on round
+        const labelOptions = {
+            'round16': Array.from({ length: 8 }, (_, i) => `R16-M${i + 1}`),
+            'quarterfinals': Array.from({ length: 4 }, (_, i) => `QF-M${i + 1}`),
+            'semifinals': Array.from({ length: 2 }, (_, i) => `SF-M${i + 1}`),
+            'thirdplace': ['3rd Place'],
+            'final': ['Final']
+        };
+
+        const labels = labelOptions[round] || [];
+        labels.forEach(label => {
+            const option = document.createElement('option');
+            option.value = label;
+            option.textContent = label;
+            if (usedLabels.has(label)) {
+                option.textContent += ' (Used)';
+                option.disabled = true;
+                option.style.color = '#999';
+            }
+            labelSelect.appendChild(option);
+        });
+    }
+
+    showTournamentGameModal() {
+        if (!this.currentUser) {
+            this.showLoginModal();
+            return;
+        }
+
+        const modal = document.getElementById('tournamentGameModal');
+        this.tournamentRounds = [];
+        const form = document.getElementById('tournamentGameForm');
+        form.reset();
+        document.getElementById('tournamentRoundsContainer').innerHTML = '';
+
+        // Set default date
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('tournamentGameDate').value = today;
+
+        // Populate initial label options for the default round (round16)
+        this.updateTournamentLabelOptions('round16');
+
+        modal.classList.add('active');
+        modal.style.display = 'flex';
+
+        // Setup autocomplete
+        setTimeout(() => {
+            this.setupTournamentPlayerAutocomplete();
+        }, 100);
+    }
+
+    hideTournamentGameModal() {
+        const modal = document.getElementById('tournamentGameModal');
+        if (modal) {
+            modal.classList.remove('active');
+            modal.style.display = 'none';
+        }
+    }
+
+    addTournamentRound() {
+        if (this.tournamentRounds.length >= 3) {
+            this.showNotification('Maximum 3 rounds allowed', 'warning');
+            return;
+        }
+
+        const roundNumber = this.tournamentRounds.length + 1;
+        const roundId = `tournament_round_${Date.now()}`;
+
+        const round = {
+            id: roundId,
+            number: roundNumber,
+            team1Score: 0,
+            team2Score: 0,
+            team1Kaboots: 0,
+            team2Kaboots: 0
+        };
+
+        this.tournamentRounds.push(round);
+        this.renderTournamentRounds();
+    }
+
+    renderTournamentRounds() {
+        const container = document.getElementById('tournamentRoundsContainer');
+        if (!container) return;
+
+        container.innerHTML = '';
+
+        this.tournamentRounds.forEach(round => {
+            const div = document.createElement('div');
+            div.className = 'round-item';
+            div.innerHTML = `
+                <div class="round-header">
+                    <h4 class="round-title">Round ${round.number}</h4>
+                    <button type="button" class="remove-round-tournament" data-round-id="${round.id}">Remove</button>
+                </div>
+                <div class="round-scores">
+                    <div class="round-score-input">
+                        <label>Team 1 Score</label>
+                        <input type="number" class="round-score" data-round-id="${round.id}" data-team="1" value="${round.team1Score}">
+                        <label class="kaboot-label">Kaboots</label>
+                        <input type="number" class="round-kaboot" data-round-id="${round.id}" data-team="1" value="${round.team1Kaboots}" min="0">
+                    </div>
+                    <div class="round-vs">VS</div>
+                    <div class="round-score-input">
+                        <label>Team 2 Score</label>
+                        <input type="number" class="round-score" data-round-id="${round.id}" data-team="2" value="${round.team2Score}">
+                        <label class="kaboot-label">Kaboots</label>
+                        <input type="number" class="round-kaboot" data-round-id="${round.id}" data-team="2" value="${round.team2Kaboots}" min="0">
+                    </div>
+                </div>
+            `;
+            container.appendChild(div);
+        });
+
+        // Add event listeners to remove buttons
+        container.querySelectorAll('.remove-round-tournament').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const roundId = e.target.dataset.roundId;
+                this.removeTournamentRound(roundId);
+            });
+        });
+
+        // Add event listeners
+        container.querySelectorAll('.round-score, .round-kaboot').forEach(input => {
+            input.addEventListener('input', (e) => {
+                const roundId = e.target.dataset.roundId;
+                const team = e.target.dataset.team;
+                const value = parseInt(e.target.value) || 0;
+
+                const round = this.tournamentRounds.find(r => r.id === roundId);
+                if (round) {
+                    if (e.target.classList.contains('round-score')) {
+                        if (team === '1') round.team1Score = value;
+                        else round.team2Score = value;
+                    } else {
+                        if (team === '1') round.team1Kaboots = value;
+                        else round.team2Kaboots = value;
+                    }
+                }
+            });
+        });
+
+        const addBtn = document.getElementById('addTournamentRoundBtn');
+        if (addBtn) {
+            addBtn.disabled = this.tournamentRounds.length >= 3;
+        }
+    }
+
+    removeTournamentRound(roundId) {
+        this.tournamentRounds = this.tournamentRounds.filter(r => r.id !== roundId);
+        this.renumberTournamentRounds();
+        this.renderTournamentRounds();
+    }
+
+    renumberTournamentRounds() {
+        this.tournamentRounds.forEach((round, idx) => {
+            round.number = idx + 1;
+        });
+    }
+
+    setupTournamentPlayerAutocomplete() {
+        const playerInputs = [
+            'tournamentTeam1Player1', 'tournamentTeam1Player2',
+            'tournamentTeam2Player1', 'tournamentTeam2Player2'
+        ];
+
+        playerInputs.forEach(inputId => {
+            const input = document.getElementById(inputId);
+            if (input) {
+                // Add autocomplete list
+                input.setAttribute('list', `datalist-${inputId}`);
+
+                // Create datalist if it doesn't exist
+                if (!document.getElementById(`datalist-${inputId}`)) {
+                    const datalist = document.createElement('datalist');
+                    datalist.id = `datalist-${inputId}`;
+                    document.body.appendChild(datalist);
+                }
+
+                // Add blur event for normalization
+                input.addEventListener('blur', (e) => {
+                    e.target.value = this.normalizePlayerName(e.target.value);
+                });
+
+                // Add input event for real-time suggestions
+                input.addEventListener('input', (e) => {
+                    const value = e.target.value.toLowerCase();
+                    const availablePlayers = this.getAvailableTournamentPlayers(inputId);
+                    const matches = availablePlayers.filter(player =>
+                        player.toLowerCase().includes(value)
+                    );
+
+                    // Update datalist options
+                    const datalist = document.getElementById(`datalist-${inputId}`);
+                    if (datalist) {
+                        datalist.innerHTML = '';
+                        matches.forEach(player => {
+                            const option = document.createElement('option');
+                            option.value = player;
+                            datalist.appendChild(option);
+                        });
+                    }
+                });
+            }
+        });
+    }
+
+    getAvailableTournamentPlayers(currentInputId) {
+        const allInputs = [
+            'tournamentTeam1Player1', 'tournamentTeam1Player2',
+            'tournamentTeam2Player1', 'tournamentTeam2Player2'
+        ];
+        const usedPlayers = [];
+
+        allInputs.forEach(inputId => {
+            if (inputId !== currentInputId) {
+                const input = document.getElementById(inputId);
+                if (input && input.value.trim()) {
+                    usedPlayers.push(input.value.trim());
+                }
+            }
+        });
+
+        return this.frequentPlayers.filter(player =>
+            !usedPlayers.some(used =>
+                used.toLowerCase() === player.toLowerCase()
+            )
+        );
+    }
+
+    async handleTournamentGameSubmit() {
+        // Validate rounds
+        if (!this.tournamentRounds || this.tournamentRounds.length === 0) {
+            alert('Please add at least one round.');
+            return;
+        }
+
+        if (this.tournamentRounds.length < 2 || this.tournamentRounds.length > 3) {
+            alert('Please add 2-3 rounds.');
+            return;
+        }
+
+        const form = document.getElementById('tournamentGameForm');
+        const formData = new FormData(form);
+
+        const round = formData.get('tournamentRound');
+
+        // Auto-calculate match number based on existing games for this round
+        const existingGamesForRound = this.getTournamentGames().filter(g => g.tournamentRound === round);
+        const matchNumber = existingGamesForRound.length;
+
+        // Update the hidden field with the calculated match number
+        const matchInput = document.getElementById('tournamentMatch');
+        if (matchInput) {
+            matchInput.value = matchNumber;
+        }
+
+        const gameData = {
+            team1Name: formData.get('tournamentTeam1Name') || '',
+            team1Players: [
+                this.normalizePlayerName(formData.get('tournamentTeam1Player1')),
+                this.normalizePlayerName(formData.get('tournamentTeam1Player2'))
+            ],
+            team2Name: formData.get('tournamentTeam2Name') || '',
+            team2Players: [
+                this.normalizePlayerName(formData.get('tournamentTeam2Player1')),
+                this.normalizePlayerName(formData.get('tournamentTeam2Player2'))
+            ],
+            rounds: this.tournamentRounds.map(round => ({
+                number: round.number,
+                team1Score: round.team1Score,
+                team2Score: round.team2Score,
+                team1Kaboots: round.team1Kaboots,
+                team2Kaboots: round.team2Kaboots
+            })),
+            gameDate: formData.get('tournamentGameDate'),
+            gameLabel: formData.get('tournamentGameLabel'),
+            tournamentRound: round,
+            tournamentMatch: matchNumber
+        };
+
+        // Add as a tournament game
+        this.addGame(gameData);
+        this.hideTournamentGameModal();
+        this.renderTournamentBracket();
+    }
+
     // Event Listeners
     initializeEventListeners() {
+        console.log('Initializing event listeners...');
+
         // Admin login button
         const adminLoginBtn = document.getElementById('adminLoginBtn');
         if (adminLoginBtn) {
@@ -1884,111 +2501,273 @@ class TarneebTracker {
             });
             console.log('Admin login button event listener attached');
         } else {
-            console.error('Admin login button not found');
+            console.log('Admin login button not found (might be on tournament page)');
         }
 
         // Login form
-        document.getElementById('loginForm').addEventListener('submit', (e) => {
-            e.preventDefault();
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
+        const loginForm = document.getElementById('loginForm');
+        if (loginForm) {
+            loginForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const username = document.getElementById('username').value;
+                const password = document.getElementById('password').value;
 
-            if (this.login(username, password)) {
-                // Success - handled in login method
-            } else {
-                alert('Invalid credentials. Please check your username and password.');
-            }
-        });
+                if (this.login(username, password)) {
+                    // Success - handled in login method
+                } else {
+                    alert('Invalid credentials. Please check your username and password.');
+                }
+            });
+        }
 
         // Close login modal
-        document.getElementById('closeLoginModal').addEventListener('click', () => {
-            this.hideLoginModal();
-        });
+        const closeLoginModal = document.getElementById('closeLoginModal');
+        if (closeLoginModal) {
+            closeLoginModal.addEventListener('click', () => {
+                this.hideLoginModal();
+            });
+        }
 
-        document.getElementById('cancelLogin').addEventListener('click', () => {
-            this.hideLoginModal();
-        });
+        const cancelLogin = document.getElementById('cancelLogin');
+        if (cancelLogin) {
+            cancelLogin.addEventListener('click', () => {
+                this.hideLoginModal();
+            });
+        }
 
         // Logout button
-        document.getElementById('logoutBtn').addEventListener('click', (e) => {
-            e.preventDefault();
-            this.logout();
-        });
+        const logoutBtn = document.getElementById('logoutBtn');
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.logout();
+            });
+        }
 
         // Export data
-        document.getElementById('exportBtn').addEventListener('click', (e) => {
-            e.preventDefault();
-            this.exportData();
-        });
+        const exportBtn = document.getElementById('exportBtn');
+        if (exportBtn) {
+            exportBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.exportData();
+            });
+        }
 
         // Import data
-        document.getElementById('importBtn').addEventListener('click', (e) => {
-            e.preventDefault();
-            document.getElementById('importFile').click();
-        });
+        const importBtn = document.getElementById('importBtn');
+        if (importBtn) {
+            importBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                const importFile = document.getElementById('importFile');
+                if (importFile) {
+                    importFile.click();
+                }
+            });
+        }
 
-        document.getElementById('importFile').addEventListener('change', (e) => {
-            this.importData(e);
-        });
+        const importFile = document.getElementById('importFile');
+        if (importFile) {
+            importFile.addEventListener('change', (e) => {
+                this.importData(e);
+            });
+        }
+
+        // Tournament button
+        const tournamentBtn = document.getElementById('tournamentBtn');
+        if (tournamentBtn) {
+            tournamentBtn.addEventListener('click', () => {
+                window.location.href = 'tournament.html';
+            });
+        }
+
+        // Tournament page specific buttons
+        const addTournamentGameBtn = document.getElementById('addTournamentGameBtn');
+        if (addTournamentGameBtn) {
+            addTournamentGameBtn.addEventListener('click', () => {
+                this.showTournamentGameModal();
+            });
+        }
+
+        // Admin controls for tournament page
+        const logoutBtnTournament = document.getElementById('logoutBtn');
+        if (logoutBtnTournament) {
+            logoutBtnTournament.addEventListener('click', () => {
+                this.logout();
+            });
+        }
+
+        const adminLoginBtnTournament = document.getElementById('adminLoginBtn');
+        if (adminLoginBtnTournament && !adminLoginBtnTournament.hasAttribute('data-listener-added')) {
+            adminLoginBtnTournament.addEventListener('click', () => {
+                this.showLoginModal();
+            });
+            adminLoginBtnTournament.setAttribute('data-listener-added', 'true');
+        }
+
+        // Close tournament modal
+        const closeTournamentModal = document.getElementById('closeTournamentModal');
+        if (closeTournamentModal) {
+            closeTournamentModal.addEventListener('click', () => {
+                this.hideTournamentModal();
+            });
+        }
 
         // Add game button
-        document.getElementById('addGameBtn').addEventListener('click', () => {
-            this.showGameModal();
-        });
+        const addGameBtn = document.getElementById('addGameBtn');
+        if (addGameBtn) {
+            addGameBtn.addEventListener('click', () => {
+                this.showGameModal();
+            });
+        }
 
         // Game form
-        document.getElementById('gameForm').addEventListener('submit', (e) => {
-            e.preventDefault();
-            this.handleGameSubmit();
-        });
+        const gameForm = document.getElementById('gameForm');
+        if (gameForm) {
+            gameForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                this.handleGameSubmit();
+            });
+        }
 
         // Photo upload
-        document.getElementById('gamePhotos').addEventListener('change', (e) => {
-            this.handlePhotoUpload(e);
-        });
+        const gamePhotos = document.getElementById('gamePhotos');
+        if (gamePhotos) {
+            gamePhotos.addEventListener('change', (e) => {
+                this.handlePhotoUpload(e);
+            });
+        }
 
         // Modal close buttons
-        document.getElementById('closeModal').addEventListener('click', () => {
-            this.hideGameModal();
-        });
+        const closeModal = document.getElementById('closeModal');
+        if (closeModal) {
+            closeModal.addEventListener('click', () => {
+                this.hideGameModal();
+            });
+        }
 
-        document.getElementById('closeDetailsModal').addEventListener('click', () => {
-            this.hideGameDetails();
-        });
+        const closeDetailsModal = document.getElementById('closeDetailsModal');
+        if (closeDetailsModal) {
+            closeDetailsModal.addEventListener('click', () => {
+                this.hideGameDetails();
+            });
+        }
 
         // Photo modal
-        document.getElementById('closePhotoModal').addEventListener('click', () => {
-            this.hidePhotoModal();
-        });
+        const closePhotoModal = document.getElementById('closePhotoModal');
+        if (closePhotoModal) {
+            closePhotoModal.addEventListener('click', () => {
+                this.hidePhotoModal();
+            });
+        }
 
         // Photo enlargement - use global function for inline onclick handlers
-
-        document.getElementById('cancelGame').addEventListener('click', () => {
-            this.hideGameModal();
-        });
+        const cancelGame = document.getElementById('cancelGame');
+        if (cancelGame) {
+            cancelGame.addEventListener('click', () => {
+                this.hideGameModal();
+            });
+        }
 
         // Close modals when clicking outside
-        document.getElementById('loginModal').addEventListener('click', (e) => {
-            if (e.target.id === 'loginModal') {
-                this.hideLoginModal();
-            }
-        });
+        const loginModal = document.getElementById('loginModal');
+        if (loginModal) {
+            loginModal.addEventListener('click', (e) => {
+                if (e.target.id === 'loginModal') {
+                    this.hideLoginModal();
+                }
+            });
+        }
 
-        document.getElementById('gameModal').addEventListener('click', (e) => {
-            if (e.target.id === 'gameModal') {
-                this.hideGameModal();
-            }
-        });
+        const gameModal = document.getElementById('gameModal');
+        if (gameModal) {
+            gameModal.addEventListener('click', (e) => {
+                if (e.target.id === 'gameModal') {
+                    this.hideGameModal();
+                }
+            });
+        }
 
-        document.getElementById('gameDetailsModal').addEventListener('click', (e) => {
-            if (e.target.id === 'gameDetailsModal') {
-                this.hideGameDetails();
-            }
-        });
+        const gameDetailsModal = document.getElementById('gameDetailsModal');
+        if (gameDetailsModal) {
+            gameDetailsModal.addEventListener('click', (e) => {
+                if (e.target.id === 'gameDetailsModal') {
+                    this.hideGameDetails();
+                }
+            });
+        }
 
-        document.getElementById('photoModal').addEventListener('click', (e) => {
-            if (e.target.id === 'photoModal') {
-                this.hidePhotoModal();
+        const photoModal = document.getElementById('photoModal');
+        if (photoModal) {
+            photoModal.addEventListener('click', (e) => {
+                if (e.target.id === 'photoModal') {
+                    this.hidePhotoModal();
+                }
+            });
+        }
+
+        const tournamentModal = document.getElementById('tournamentModal');
+        if (tournamentModal) {
+            tournamentModal.addEventListener('click', (e) => {
+                if (e.target.id === 'tournamentModal') {
+                    this.hideTournamentModal();
+                }
+            });
+        }
+
+        // Tournament game modal - button inside addTournamentGameBtn (tournament page)
+        const addTournamentGameBtnContainer = document.getElementById('addTournamentGameBtn');
+        if (addTournamentGameBtnContainer) {
+            const btn = addTournamentGameBtnContainer.querySelector('button');
+            if (btn && !btn.hasAttribute('data-listener-added')) {
+                btn.addEventListener('click', () => {
+                    this.showTournamentGameModal();
+                });
+                btn.setAttribute('data-listener-added', 'true');
+            }
+        }
+
+        const closeTournamentGameModal = document.getElementById('closeTournamentGameModal');
+        if (closeTournamentGameModal) {
+            closeTournamentGameModal.addEventListener('click', () => {
+                this.hideTournamentGameModal();
+            });
+        }
+
+        const cancelTournamentGame = document.getElementById('cancelTournamentGame');
+        if (cancelTournamentGame) {
+            cancelTournamentGame.addEventListener('click', () => {
+                this.hideTournamentGameModal();
+            });
+        }
+
+        const tournamentGameForm = document.getElementById('tournamentGameForm');
+        if (tournamentGameForm) {
+            tournamentGameForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                this.handleTournamentGameSubmit();
+            });
+        }
+
+        const addTournamentRoundBtn = document.getElementById('addTournamentRoundBtn');
+        if (addTournamentRoundBtn) {
+            addTournamentRoundBtn.addEventListener('click', () => {
+                this.addTournamentRound();
+            });
+        }
+
+        // Update game label options based on selected round
+        const tournamentRoundSelect = document.getElementById('tournamentRound');
+        const labelSelect = document.getElementById('tournamentGameLabel');
+        if (tournamentRoundSelect && labelSelect) {
+            tournamentRoundSelect.addEventListener('change', (e) => {
+                const round = e.target.value;
+                this.updateTournamentLabelOptions(round);
+            });
+        }
+
+        document.getElementById('tournamentGameModal').addEventListener('click', (e) => {
+            if (e.target.id === 'tournamentGameModal') {
+                this.hideTournamentGameModal();
             }
         });
 
@@ -2162,8 +2941,14 @@ class TarneebTracker {
 }
 
 // Initialize the application
-const tracker = new TarneebTracker();
-window.tracker = tracker; // Make it globally available
+console.log('=== Initializing TarneebTracker ===');
+try {
+    const tracker = new TarneebTracker();
+    window.tracker = tracker; // Make it globally available
+    console.log('Tracker created successfully');
+} catch (error) {
+    console.error('Error creating tracker:', error);
+}
 
 // Global function for photo enlargement - defined immediately
 window.showPhoto = function (photoSrc) {
@@ -2225,7 +3010,9 @@ window.showPhoto = function (photoSrc) {
 
 // Make deleteExistingPhoto globally accessible
 window.deleteExistingPhoto = function (photoIndex) {
-    if (tracker && tracker.deleteExistingPhoto) {
+    if (window.tracker && window.tracker.deleteExistingPhoto) {
+        window.tracker.deleteExistingPhoto(photoIndex);
+    } else if (tracker && tracker.deleteExistingPhoto) {
         tracker.deleteExistingPhoto(photoIndex);
     } else {
         console.error('Tracker not available for photo deletion');
@@ -2235,11 +3022,21 @@ window.deleteExistingPhoto = function (photoIndex) {
 
 
 
-// Set today's date as default
-document.addEventListener('DOMContentLoaded', () => {
+// Set today's date as default after DOM is ready
+function setDefaultDates() {
     const today = new Date().toISOString().split('T')[0];
     const gameDateInput = document.getElementById('gameDate');
+    const tournamentGameDateInput = document.getElementById('tournamentGameDate');
     if (gameDateInput) {
         gameDateInput.value = today;
     }
-});
+    if (tournamentGameDateInput) {
+        tournamentGameDateInput.value = today;
+    }
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', setDefaultDates);
+} else {
+    setDefaultDates();
+}

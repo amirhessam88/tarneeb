@@ -1,0 +1,10 @@
+[2025-10-27 17:59:59] Error loading secure config: Environment variables not configured. Please set TARNEEB_ADMIN_USERNAME and TARNEEB_ADMIN_PASSWORD in your cPanel environment variables or .bashrc file.
+[2025-10-27 18:00:42] Error loading secure config: Environment variables not configured. Please set TARNEEB_ADMIN_USERNAME and TARNEEB_ADMIN_PASSWORD in your cPanel environment variables or .bashrc file.
+[2025-10-27 18:01:17] Error loading secure config: Environment variables not configured. Please set TARNEEB_ADMIN_USERNAME and TARNEEB_ADMIN_PASSWORD in your cPanel environment variables or .bashrc file.
+[2025-10-27 18:02:34] Authentication successful for user: rhc
+[2025-10-27 18:32:50] Authentication successful for user: rhc
+[2025-10-27 18:36:28] Authentication successful for user: rhc
+[2025-10-27 18:39:08] Successfully saved 5 games
+[2025-10-27 18:39:40] Successfully saved 6 games
+[2025-10-27 20:22:56] Successfully saved 5 games
+[2025-10-27 20:24:21] Successfully saved 6 games

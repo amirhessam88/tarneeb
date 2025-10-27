@@ -22,6 +22,7 @@
                 <h1>Tarneeb Score Tracker</h1>
             </div>
             <div class="header-actions">
+                <button id="tournamentBtn" class="btn btn-secondary">Tournament</button>
                 <button id="adminLoginBtn" class="btn btn-secondary">Admin
                     Login</button>
                 <div id="adminControls" class="admin-controls"
@@ -213,6 +214,101 @@
                 <img id="enlargedPhoto" src="" alt="Game proof photo"
                     class="enlarged-photo">
             </div>
+        </div>
+    </div>
+
+    <!-- Tournament Modal -->
+    <div id="tournamentModal" class="modal">
+        <div class="modal-content tournament-modal-content">
+            <div class="modal-header">
+                <h2>Tournament Bracket</h2>
+                <button id="closeTournamentModal" class="close-btn">&times;</button>
+            </div>
+            <div class="tournament-content">
+                <div class="tournament-header">
+                    <div id="addTournamentGameBtn" class="tournament-add-game" style="display: none;">
+                        <button class="btn btn-primary">Add Tournament Game</button>
+                    </div>
+                </div>
+                <div id="tournamentBracket" class="tournament-bracket">
+                    <!-- Tournament bracket will be rendered here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tournament Game Modal -->
+    <div id="tournamentGameModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Add Tournament Game</h2>
+                <button id="closeTournamentGameModal" class="close-btn">&times;</button>
+            </div>
+            <form id="tournamentGameForm" class="game-form">
+                <div class="form-group">
+                    <label for="tournamentRound">Round:</label>
+                    <select id="tournamentRound" name="tournamentRound" required>
+                        <option value="round16">Round of 16</option>
+                        <option value="quarterfinals">Quarterfinals</option>
+                        <option value="semifinals">Semifinals</option>
+                        <option value="final">Final</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="tournamentMatch">Match Number:</label>
+                    <input type="number" id="tournamentMatch" name="tournamentMatch" min="0" max="7" required>
+                </div>
+                <div class="game-setup">
+                    <div class="team-section">
+                        <h3>Team 1</h3>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="tournamentTeam1Player1">Player 1:</label>
+                                <input type="text" id="tournamentTeam1Player1" name="tournamentTeam1Player1" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="tournamentTeam1Player2">Player 2:</label>
+                                <input type="text" id="tournamentTeam1Player2" name="tournamentTeam1Player2" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="team-section">
+                        <h3>Team 2</h3>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="tournamentTeam2Player1">Player 1:</label>
+                                <input type="text" id="tournamentTeam2Player1" name="tournamentTeam2Player1" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="tournamentTeam2Player2">Player 2:</label>
+                                <input type="text" id="tournamentTeam2Player2" name="tournamentTeam2Player2" required>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="rounds-section">
+                    <div class="rounds-header">
+                        <h3>Game Rounds</h3>
+                        <div class="rounds-controls">
+                            <button type="button" id="addTournamentRoundBtn" class="btn btn-outline">+ Add Round</button>
+                            <span class="rounds-info">Add 2-3 rounds (best of 3)</span>
+                        </div>
+                    </div>
+                    <div id="tournamentRoundsContainer">
+                        <!-- Rounds will be added dynamically -->
+                    </div>
+                </div>
+                <div class="game-details">
+                    <div class="form-group">
+                        <label for="tournamentGameDate">Date:</label>
+                        <input type="date" id="tournamentGameDate" name="tournamentGameDate" required>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button type="button" id="cancelTournamentGame" class="btn btn-secondary">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Game</button>
+                </div>
+            </form>
         </div>
     </div>
 
