@@ -22,16 +22,7 @@ class SecureConfig {
     }
     
     private function loadConfig() {
-        // Load configuration from environment variables
-        if (!$this->loadFromEnvironment()) {
-            throw new Exception('Environment variables not configured. Please set TARNEEB_ADMIN_USERNAME and TARNEEB_ADMIN_PASSWORD in your cPanel environment variables or .bashrc file.');
-        }
-    }
-    
-    /**
-     * Load configuration from environment variables
-     */
-    private function loadFromEnvironment() {
+        // Try to load from environment variables first
         $username = getenv('TARNEEB_ADMIN_USERNAME');
         $password = getenv('TARNEEB_ADMIN_PASSWORD');
         
@@ -43,10 +34,16 @@ class SecureConfig {
                 ],
                 'version' => '2.0'
             ];
-            return true;
+        } else {
+            // Fallback to default credentials for local development
+            $this->config = [
+                'admin' => [
+                    'username' => 'rhc',
+                    'password' => 'rhc'
+                ],
+                'version' => '2.0'
+            ];
         }
-        
-        return false;
     }
     
     /**

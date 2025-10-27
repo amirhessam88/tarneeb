@@ -719,6 +719,7 @@ img {
     width: 100%;
     height: 100%;
     background-color: rgba(0, 0, 0, 0.5);
+    -webkit-backdrop-filter: blur(5px);
     backdrop-filter: blur(5px);
 }
 
@@ -1609,4 +1610,542 @@ datalist option:last-child {
     font-size: 12px;
     margin-top: 4px;
     font-weight: 500;
+}
+
+/* Tournament Styles */
+.tournament-modal-content {
+    max-width: 95vw;
+    max-height: 90vh;
+    width: auto;
+}
+
+.tournament-content {
+    padding: 20px;
+    overflow-x: auto;
+    overflow-y: auto;
+}
+
+.tournament-header {
+    margin-bottom: 20px;
+}
+
+.tournament-add-game {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 10px;
+}
+
+/* FIFA World Cup Style Bracket */
+.fifa-bracket-holder {
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+    padding: 20px;
+    align-items: center;
+}
+
+.bracket-section {
+    width: 100%;
+    max-width: 1400px;
+}
+
+.bracket-section h3 {
+    text-align: center;
+    color: #667eea;
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 3px solid #667eea;
+}
+
+.bracket-columns {
+    display: flex;
+    justify-content: space-between;
+    gap: 60px;
+}
+
+.bracket-left,
+.bracket-right {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.bracket-left {
+    align-items: flex-end;
+}
+
+.bracket-right {
+    align-items: flex-start;
+}
+
+.bracket-match-box {
+    background: white;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    padding: 15px;
+    min-width: 220px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    transition: all 0.3s ease;
+}
+
+.bracket-match-box:hover {
+    border-color: #667eea;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
+    transform: translateY(-2px);
+}
+
+.bracket-team-row {
+    padding: 10px 15px;
+    background: #f8f9fa;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #333;
+    transition: all 0.3s ease;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.bracket-team-row.winner {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    font-weight: 600;
+    border: 2px solid #667eea;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+
+.match-score-badge {
+    background: #667eea;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: bold;
+}
+
+.bracket-team-row.winner .match-score-badge {
+    background: white;
+    color: #667eea;
+}
+
+.vs-divider-bracket {
+    text-align: center;
+    color: #666;
+    font-weight: 600;
+    font-size: 12px;
+    padding: 5px;
+}
+
+.bracket-final {
+    display: flex;
+    justify-content: center;
+    margin: 20px 0;
+}
+
+.bracket-final .bracket-match-box {
+    background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+    border: 3px solid #ff6b35;
+    box-shadow: 0 8px 25px rgba(255, 107, 53, 0.3);
+    min-width: 300px;
+    padding: 20px;
+}
+
+.bracket-final .bracket-team-row {
+    background: white;
+    border: 2px solid #ff6b35;
+}
+
+.champion {
+    text-align: center;
+    margin-top: 30px;
+    padding: 20px;
+    background: linear-gradient(135deg, #FFD700 0%, #FFED4E 100%);
+    border-radius: 12px;
+    font-size: 24px;
+    font-weight: bold;
+    color: #333;
+    box-shadow: 0 4px 20px rgba(255, 215, 0, 0.4);
+    border: 3px solid #ff6b35;
+}
+
+@media (max-width: 768px) {
+    .fifa-bracket-holder {
+        gap: 20px;
+    }
+
+    .bracket-columns {
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .bracket-left,
+    .bracket-right {
+        align-items: stretch;
+    }
+
+    .bracket-match-box {
+        min-width: auto;
+    }
+}
+
+.bracket-section h3 {
+    color: #667eea;
+    text-align: center;
+    margin-bottom: 15px;
+    font-size: 18px;
+    font-weight: 600;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #667eea;
+}
+
+.matchup-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.matchup {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: white;
+    padding: 12px 15px;
+    border-radius: 8px;
+    border: 2px solid #e9ecef;
+    transition: all 0.3s ease;
+    gap: 10px;
+}
+
+.matchup:hover {
+    border-color: #667eea;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+    transform: translateY(-2px);
+}
+
+.matchup-final {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 20px;
+    border-radius: 12px;
+    gap: 20px;
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+}
+
+.matchup-final .vs {
+    color: white;
+    font-weight: bold;
+    font-size: 18px;
+}
+
+.team-slot {
+    flex: 1;
+    padding: 10px 15px;
+    background: white;
+    border-radius: 6px;
+    text-align: center;
+    font-weight: 500;
+    color: #333;
+    border: 2px solid #e9ecef;
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.team-slot.filled {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-color: #667eea;
+}
+
+.matchup-final .team-slot {
+    background: white;
+    color: #667eea;
+    font-weight: 600;
+    font-size: 16px;
+    min-height: 50px;
+}
+
+.matchup .vs {
+    color: #666;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.champion {
+    text-align: center;
+    margin-top: 20px;
+    padding: 15px;
+    background: linear-gradient(135deg, #FFD700 0%, #FFED4E 100%);
+    border-radius: 8px;
+    font-size: 20px;
+    font-weight: bold;
+    color: #333;
+    box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
+}
+
+@media (max-width: 768px) {
+    .bracket-container {
+        grid-template-columns: 1fr;
+    }
+
+    .matchup {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .matchup .vs {
+        transform: rotate(90deg);
+    }
+
+    .team-slot {
+        width: 100%;
+    }
+}
+
+/* New FIFA Bracket Styles */
+.bracket-container-fifa {
+    max-width: 1600px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.round-section {
+    margin-bottom: 50px;
+}
+
+.round-title {
+    text-align: center;
+    color: #667eea;
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 30px;
+    padding-bottom: 15px;
+    border-bottom: 4px solid #667eea;
+}
+
+.bracket-layout {
+    display: flex;
+    justify-content: space-between;
+    gap: 100px;
+    padding: 20px 0;
+}
+
+.bracket-left-side {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    align-items: flex-end;
+    position: relative;
+}
+
+.bracket-left-side::before {
+    content: '';
+    position: absolute;
+    right: -50px;
+    top: 0;
+    width: 3px;
+    height: 100%;
+    background: linear-gradient(to bottom, #667eea, #764ba2);
+}
+
+.bracket-right-side {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    align-items: flex-start;
+    position: relative;
+}
+
+.bracket-right-side::before {
+    content: '';
+    position: absolute;
+    left: -50px;
+    top: 0;
+    width: 3px;
+    height: 100%;
+    background: linear-gradient(to bottom, #667eea, #764ba2);
+}
+
+.match-card {
+    background: white;
+    border: 3px solid #e9ecef;
+    border-radius: 10px;
+    padding: 20px;
+    padding-top: 30px;
+    min-width: 280px;
+    max-width: 320px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.game-label-badge {
+    position: absolute;
+    top: -12px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
+    z-index: 10;
+}
+
+/* Add connecting lines to next round */
+.bracket-left-side .match-card::after {
+    content: '';
+    position: absolute;
+    right: -50px;
+    top: 50%;
+    width: 50px;
+    height: 3px;
+    background: linear-gradient(to right, #667eea, transparent);
+    transform: translateY(-50%);
+}
+
+.bracket-right-side .match-card::before {
+    content: '';
+    position: absolute;
+    left: -50px;
+    top: 50%;
+    width: 50px;
+    height: 3px;
+    background: linear-gradient(to left, #667eea, transparent);
+    transform: translateY(-50%);
+}
+
+.match-card:hover {
+    border-color: #667eea;
+    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.25);
+    transform: translateY(-3px);
+}
+
+.team-cell {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border: 2px solid #dee2e6;
+    border-radius: 8px;
+    padding: 15px;
+    transition: all 0.3s ease;
+}
+
+.team-cell.winner {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-color: #667eea;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+
+.team-name {
+    font-size: 15px;
+    font-weight: 600;
+    color: #333;
+}
+
+.team-cell.winner .team-name {
+    color: white;
+}
+
+.score-display {
+    margin-top: 8px;
+    font-size: 18px;
+    font-weight: 700;
+    color: #667eea;
+}
+
+.team-cell.winner .score-display {
+    color: white;
+}
+
+.match-vs {
+    text-align: center;
+    color: #6c757d;
+    font-weight: 700;
+    font-size: 14px;
+    padding: 8px;
+}
+
+.bracket-final-container {
+    display: flex;
+    justify-content: center;
+}
+
+.bracket-final-container .match-card {
+    background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+    border: 4px solid #ff6b35;
+    box-shadow: 0 10px 30px rgba(255, 107, 53, 0.4);
+    min-width: 350px;
+    max-width: 400px;
+}
+
+.bracket-final-container .team-cell {
+    background: white;
+    border-color: #ff6b35;
+}
+
+.bracket-final-container .team-cell.winner {
+    background: linear-gradient(135deg, #ff6b35 0%, #ff8844 100%);
+}
+
+.bracket-final-container .team-cell.winner .team-name {
+    color: white;
+}
+
+@media (max-width: 1200px) {
+    .bracket-layout {
+        gap: 40px;
+    }
+
+    .match-card {
+        min-width: 220px;
+        max-width: 280px;
+    }
+}
+
+@media (max-width: 768px) {
+    .bracket-layout {
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .bracket-left-side,
+    .bracket-right-side {
+        align-items: stretch;
+    }
+
+    .match-card {
+        min-width: auto;
+        max-width: 100%;
+    }
+
+    /* Hide connecting lines on mobile */
+    .bracket-left-side::before,
+    .bracket-right-side::before,
+    .bracket-left-side .match-card::after,
+    .bracket-right-side .match-card::before {
+        display: none;
+    }
+
+    /* Stack third place and final sections on mobile */
+    .final-section {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 30px !important;
+    }
 }

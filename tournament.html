@@ -4,76 +4,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tarneeb Score Tracker</title>
+    <title>Tournament - Tarneeb Score Tracker</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="icon" type="image/png" href="assets/favicon.png">
 </head>
 
 <body>
-    <!-- Main App Screen (Always Visible) -->
+    <!-- Tournament Page -->
     <div id="mainScreen" class="screen active">
         <header class="header">
             <div class="header-left">
                 <img src="assets/favicon.png" alt="Tarneeb Logo"
                     class="header-logo">
-                <h1>Tarneeb Score Tracker</h1>
+                <h1>Tournament Bracket</h1>
             </div>
             <div class="header-actions">
-                <button id="tournamentBtn"
-                    class="btn btn-secondary">Tournament</button>
+                <a href="index.html" class="btn btn-secondary">← Back to
+                    Main</a>
                 <button id="adminLoginBtn" class="btn btn-secondary">Admin
                     Login</button>
                 <div id="adminControls" class="admin-controls"
                     style="display: none;">
-                    <button id="addGameBtn" class="btn btn-primary">Add New
-                        Game</button>
-                    <div class="dropdown">
-                        <button id="menuBtn" class="btn btn-secondary">☰
-                            Menu</button>
-                        <div id="dropdownMenu" class="dropdown-content">
-                            <a href="#" id="exportBtn">Export Data</a>
-                            <a href="#" id="importBtn">Import Data</a>
-                            <input type="file" id="importFile" accept=".json"
-                                style="display: none;">
-                            <hr>
-                            <a href="#" id="logoutBtn">Logout</a>
-                        </div>
-                    </div>
+                    <button id="addTournamentGameBtn"
+                        class="btn btn-primary">Add Tournament Game</button>
+                    <button id="logoutBtn"
+                        class="btn btn-secondary">Logout</button>
                 </div>
             </div>
         </header>
 
         <main class="main-content">
-            <div class="stats-cards">
-                <div class="stat-card">
-                    <h3>Total Games</h3>
-                    <span id="totalGames">0</span>
-                </div>
-                <div class="stat-card">
-                    <h3>This Month</h3>
-                    <span id="monthlyGames">0</span>
-                </div>
-            </div>
-
-            <div class="records-section">
-                <h2>Player Records</h2>
-                <div id="playerRecords" class="player-records">
-                    <!-- Player records will be populated here -->
-                </div>
-            </div>
-
-            <div class="teams-section">
-                <h2>Best Teams</h2>
-                <div id="teamRankings" class="team-rankings">
-                    <!-- Team rankings will be populated here -->
-                </div>
-            </div>
-
-            <div class="games-section">
-                <h2>Recent Games</h2>
-                <div id="gamesList" class="games-list">
-                    <!-- Games will be populated here -->
-                </div>
+            <div id="tournamentBracket" class="tournament-bracket">
+                <!-- Tournament bracket will be rendered here -->
             </div>
         </main>
 
@@ -108,141 +70,6 @@
                     <button type="submit" class="btn btn-primary">Login</button>
                 </div>
             </form>
-        </div>
-    </div>
-
-    <!-- Add/Edit Game Modal -->
-    <div id="gameModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 id="modalTitle">Add New Game</h2>
-                <button id="closeModal" class="close-btn">&times;</button>
-            </div>
-            <form id="gameForm" class="game-form">
-                <!-- Team Setup -->
-                <div class="game-setup">
-                    <div class="team-section">
-                        <h3>Team 1</h3>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="team1Player1">Player 1:</label>
-                                <input type="text" id="team1Player1"
-                                    name="team1Player1" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="team1Player2">Player 2:</label>
-                                <input type="text" id="team1Player2"
-                                    name="team1Player2" required>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="team-section">
-                        <h3>Team 2</h3>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="team2Player1">Player 1:</label>
-                                <input type="text" id="team2Player1"
-                                    name="team2Player1" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="team2Player2">Player 2:</label>
-                                <input type="text" id="team2Player2"
-                                    name="team2Player2" required>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Rounds Section -->
-                <div class="rounds-section">
-                    <div class="rounds-header">
-                        <h3>Game Rounds</h3>
-                        <div class="rounds-controls">
-                            <button type="button" id="addRoundBtn"
-                                class="btn btn-outline">+ Add Round</button>
-                            <span class="rounds-info">Add up to 3 rounds (2 wins
-                                needed)</span>
-                        </div>
-                    </div>
-                    <div id="roundsContainer">
-                        <!-- Rounds will be added dynamically -->
-                    </div>
-                </div>
-
-                <!-- Game Details -->
-                <div class="game-details">
-                    <div class="form-group">
-                        <label for="gameDate">Date:</label>
-                        <input type="date" id="gameDate" name="gameDate"
-                            required>
-                    </div>
-                    <div class="form-group">
-                        <label for="gamePhotos">Game Photos (Proof):</label>
-                        <input type="file" id="gamePhotos" name="gamePhotos"
-                            accept="image/*" multiple>
-                        <div class="photo-upload-info">You can select multiple
-                            photos at once</div>
-                        <div id="photoPreview" class="photo-preview"></div>
-                    </div>
-                    <div class="form-actions">
-                        <button type="button" id="cancelGame"
-                            class="btn btn-secondary">Cancel</button>
-                        <button type="submit" class="btn btn-primary">Save
-                            Game</button>
-                    </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Game Details Modal -->
-    <div id="gameDetailsModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Game Details</h2>
-                <button id="closeDetailsModal"
-                    class="close-btn">&times;</button>
-            </div>
-            <div id="gameDetailsContent" class="game-details">
-                <!-- Game details will be populated here -->
-            </div>
-        </div>
-    </div>
-
-    <!-- Photo Enlargement Modal -->
-    <div id="photoModal" class="modal">
-        <div class="modal-content photo-modal-content">
-            <div class="modal-header">
-                <h2>Game Proof Photo</h2>
-                <button id="closePhotoModal" class="close-btn">&times;</button>
-            </div>
-            <div class="photo-container">
-                <img id="enlargedPhoto" src="" alt="Game proof photo"
-                    class="enlarged-photo">
-            </div>
-        </div>
-    </div>
-
-    <!-- Tournament Modal -->
-    <div id="tournamentModal" class="modal">
-        <div class="modal-content tournament-modal-content">
-            <div class="modal-header">
-                <h2>Tournament Bracket</h2>
-                <button id="closeTournamentModal"
-                    class="close-btn">&times;</button>
-            </div>
-            <div class="tournament-content">
-                <div class="tournament-header">
-                    <div id="addTournamentGameBtn" class="tournament-add-game"
-                        style="display: none;">
-                        <button class="btn btn-primary">Add Tournament
-                            Game</button>
-                    </div>
-                </div>
-                <div id="tournamentBracket" class="tournament-bracket">
-                    <!-- Tournament bracket will be rendered here -->
-                </div>
-            </div>
         </div>
     </div>
 
@@ -375,8 +202,6 @@
     </div>
 
     <script src="script.js"></script>
-
-
 </body>
 
 </html>
