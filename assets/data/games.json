@@ -1,96 +1,294 @@
 {
     "games": [
         {
-            "id": "1761596661025",
-            "team1Name": "YNGNNNN",
+            "id": "1761548039080",
             "team1Players": [
-                "Amir",
-                "Youssef"
+                "Youssef",
+                "Amir"
             ],
-            "team2Name": "Losers",
             "team2Players": [
-                "Lose",
-                "Errrrr"
+                "Christina",
+                "Osama"
             ],
             "rounds": [
                 {
                     "number": 1,
-                    "team1Score": 1,
-                    "team2Score": 0,
-                    "team1Kaboots": 0,
-                    "team2Kaboots": 0
-                },
-                {
-                    "number": 2,
-                    "team1Score": 4,
-                    "team2Score": 0,
-                    "team1Kaboots": 0,
+                    "team1Score": 65,
+                    "team2Score": 21,
+                    "team1Kaboots": 1,
                     "team2Kaboots": 0
                 }
             ],
             "gameDate": "2025-10-27",
-            "gameLabel": "R16-M2",
-            "tournamentRound": "round16",
-            "tournamentMatch": 1,
-            "createdAt": "2025-10-27T20:24:21.025Z",
-            "winner": "team1",
+            "createdAt": "2025-10-27T06:53:59.080Z",
+            "winner": "incomplete_team1_win",
             "roundResults": [
                 {
                     "winner": "team1",
-                    "team1Score": 1,
-                    "team2Score": 0
-                },
+                    "team1Score": 65,
+                    "team2Score": 21
+                }
+            ],
+            "photos": [
+                "assets\/photos\/68ff17d855e0b_1761548248.jpg"
+            ],
+            "photo": "assets\/photos\/68ff17d855e0b_1761548248.jpg"
+        },
+        {
+            "id": "1761548038178",
+            "team1Players": [
+                "Youssef",
+                "Amir"
+            ],
+            "team2Players": [
+                "Christina",
+                "Osama"
+            ],
+            "rounds": [
+                {
+                    "number": 1,
+                    "team1Score": 65,
+                    "team2Score": 21,
+                    "team1Kaboots": 1,
+                    "team2Kaboots": 0
+                }
+            ],
+            "gameDate": "2025-10-27",
+            "createdAt": "2025-10-27T06:53:58.178Z",
+            "winner": "incomplete_team1_win",
+            "roundResults": [
                 {
                     "winner": "team1",
-                    "team1Score": 4,
-                    "team2Score": 0
+                    "team1Score": 65,
+                    "team2Score": 21
                 }
             ]
         },
         {
-            "id": "1761596576228",
-            "team1Name": "AB",
+            "id": "1761468014583",
             "team1Players": [
-                "A",
-                "B"
+                "Youssef",
+                "Hesham"
             ],
-            "team2Name": "CD",
             "team2Players": [
-                "C",
-                "D"
+                "Joseph",
+                "Bassel"
             ],
             "rounds": [
                 {
                     "number": 1,
-                    "team1Score": 1,
-                    "team2Score": 0,
+                    "team1Score": 42,
+                    "team2Score": 63,
+                    "team1Kaboots": 0,
+                    "team2Kaboots": 0
+                }
+            ],
+            "gameDate": "2025-10-26",
+            "photos": [
+                "assets\/photos\/68fdde6e8a6b8_1761468014.jpg"
+            ],
+            "photo": "assets\/photos\/68fdde6e8a6b8_1761468014.jpg",
+            "createdAt": "2025-10-26T08:40:14.583Z",
+            "winner": "incomplete_team2_win",
+            "roundResults": [
+                {
+                    "winner": "team2",
+                    "team1Score": 42,
+                    "team2Score": 63
+                }
+            ]
+        },
+        {
+            "id": "1761462309196",
+            "team1Players": [
+                "Bassel",
+                "Joseph"
+            ],
+            "team2Players": [
+                "Zena",
+                "Brittany"
+            ],
+            "rounds": [
+                {
+                    "number": 1,
+                    "team1Score": 43,
+                    "team2Score": 68,
+                    "team1Kaboots": 0,
+                    "team2Kaboots": 1
+                }
+            ],
+            "gameDate": "2025-10-26",
+            "photos": [
+                "assets\/photos\/68fdc825479f4_1761462309.jpg"
+            ],
+            "photo": "assets\/photos\/68fdc825479f4_1761462309.jpg",
+            "createdAt": "2025-10-26T07:05:09.196Z",
+            "winner": "incomplete_team2_win",
+            "roundResults": [
+                {
+                    "winner": "team2",
+                    "team1Score": 43,
+                    "team2Score": 68
+                }
+            ]
+        },
+        {
+            "id": "1761452758829",
+            "team1Players": [
+                "Hesham",
+                "Amir"
+            ],
+            "team2Players": [
+                "Zena",
+                "Raquel"
+            ],
+            "rounds": [
+                {
+                    "number": 1,
+                    "team1Score": 66,
+                    "team2Score": 35,
+                    "team1Kaboots": 0,
+                    "team2Kaboots": 1
+                }
+            ],
+            "gameDate": "2025-10-25",
+            "photos": [
+                "assets\/photos\/68fda2d6c29f9_1761452758.jpg"
+            ],
+            "photo": "assets\/photos\/68fda2d6c29f9_1761452758.jpg",
+            "createdAt": "2025-10-26T04:25:58.829Z",
+            "winner": "incomplete_team1_win",
+            "roundResults": [
+                {
+                    "winner": "team1",
+                    "team1Score": 66,
+                    "team2Score": 35
+                }
+            ]
+        },
+        {
+            "id": "1761373302106",
+            "team1Players": [
+                "Zena",
+                "Amir"
+            ],
+            "team2Players": [
+                "Christina",
+                "Osama"
+            ],
+            "rounds": [
+                {
+                    "number": 1,
+                    "team1Score": 64,
+                    "team2Score": 18,
+                    "team1Kaboots": 1,
+                    "team2Kaboots": 0
+                }
+            ],
+            "gameDate": "2025-10-25",
+            "photos": [
+                "assets\/photos\/68fc6c75effd2_1761373301.jpg"
+            ],
+            "photo": "assets\/photos\/68fc6c75effd2_1761373301.jpg",
+            "createdAt": "2025-10-25T06:21:42.106Z",
+            "winner": "incomplete_team1_win",
+            "roundResults": [
+                {
+                    "winner": "team1",
+                    "team1Score": 64,
+                    "team2Score": 18
+                }
+            ]
+        },
+        {
+            "id": "1761290361268",
+            "team1Players": [
+                "Youssef",
+                "Amir"
+            ],
+            "team2Players": [
+                "Osama",
+                "Christina"
+            ],
+            "rounds": [
+                {
+                    "number": 1,
+                    "team1Score": 68,
+                    "team2Score": -6,
+                    "team1Kaboots": 0,
+                    "team2Kaboots": 1
+                },
+                {
+                    "number": 2,
+                    "team1Score": 68,
+                    "team2Score": 2,
+                    "team1Kaboots": 0,
+                    "team2Kaboots": 0
+                }
+            ],
+            "gameDate": "2025-10-24",
+            "photos": [
+                "assets\/photos\/68fb287950e66_1761290361.jpg"
+            ],
+            "photo": "assets\/photos\/68fb287950e66_1761290361.jpg",
+            "createdAt": "2025-10-24T07:19:21.268Z",
+            "winner": "team1",
+            "roundResults": [
+                {
+                    "winner": "team1",
+                    "team1Score": 68,
+                    "team2Score": -6
+                },
+                {
+                    "winner": "team1",
+                    "team1Score": 68,
+                    "team2Score": 2
+                }
+            ]
+        },
+        {
+            "id": "1761205188455",
+            "team1Players": [
+                "Amir",
+                "Youssef"
+            ],
+            "team2Players": [
+                "Christina",
+                "Bassel"
+            ],
+            "rounds": [
+                {
+                    "number": 1,
+                    "team1Score": 63,
+                    "team2Score": -2,
                     "team1Kaboots": 0,
                     "team2Kaboots": 0
                 },
                 {
                     "number": 2,
-                    "team1Score": 2,
-                    "team2Score": 0,
+                    "team1Score": 61,
+                    "team2Score": 46,
                     "team1Kaboots": 0,
                     "team2Kaboots": 0
                 }
             ],
-            "gameDate": "2025-10-27",
-            "gameLabel": "R16-M1",
-            "tournamentRound": "round16",
-            "tournamentMatch": 0,
-            "createdAt": "2025-10-27T20:22:56.228Z",
+            "gameDate": "2025-10-23",
+            "photos": [
+                "assets\/photos\/68f9dbc43afd5_1761205188.jpg"
+            ],
+            "photo": "assets\/photos\/68f9dbc43afd5_1761205188.jpg",
+            "createdAt": "2025-10-23T07:39:48.455Z",
             "winner": "team1",
             "roundResults": [
                 {
                     "winner": "team1",
-                    "team1Score": 1,
-                    "team2Score": 0
+                    "team1Score": 63,
+                    "team2Score": -2
                 },
                 {
                     "winner": "team1",
-                    "team1Score": 2,
-                    "team2Score": 0
+                    "team1Score": 61,
+                    "team2Score": 46
                 }
             ]
         },
@@ -107,8 +305,8 @@
             "rounds": [
                 {
                     "number": 1,
-                    "team1Score": 60,
-                    "team2Score": -20,
+                    "team1Score": 62,
+                    "team2Score": -19,
                     "team1Kaboots": 0,
                     "team2Kaboots": 0
                 }
@@ -243,6 +441,6 @@
             ]
         }
     ],
-    "lastUpdated": "2025-10-27T20:24:21+00:00",
+    "lastUpdated": "2025-10-28T02:29:01+00:00",
     "version": "1.0"
 }

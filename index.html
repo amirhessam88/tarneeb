@@ -223,11 +223,33 @@
         </div>
     </div>
 
+    <!-- Tournament Selector Modal -->
+    <div id="tournamentSelectorModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Select Tournament</h2>
+                <button id="closeTournamentSelectorModal"
+                    class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p style="margin-bottom: 20px;">Select an existing tournament to
+                    view:</p>
+                <div id="existingTournaments">
+                    <!-- Existing tournaments will be populated here -->
+                </div>
+                <div class="form-actions" style="margin-top: 20px;">
+                    <button type="button" id="closeTournamentSelector"
+                        class="btn btn-secondary">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Tournament Modal -->
     <div id="tournamentModal" class="modal">
         <div class="modal-content tournament-modal-content">
             <div class="modal-header">
-                <h2>Tournament Bracket</h2>
+                <h2 id="tournamentModalTitle">Tournament Bracket</h2>
                 <button id="closeTournamentModal"
                     class="close-btn">&times;</button>
             </div>

@@ -7,11 +7,10 @@
 name: website
 
 on:
-    push:
-        branches: ["master"]
+    pull_request:
 
 jobs:
-    cd:
+    ci:
         #----------------------------------------------
         # -----  setup operating system (os)  -----
         #----------------------------------------------
@@ -32,7 +31,7 @@ jobs:
               with:
                   python-version: ${{ matrix.python-version }}
             #----------------------------------------------
-            #  ---  Deploy files tarneeb.amirhessam.com  ---
+            #  ---  dry-run of deploying files to tarneeb.amirhessam.com  ---
             #----------------------------------------------
             - name: Deploy Website
               uses: SamKirkland/FTP-Deploy-Action@v4.3.6
@@ -48,4 +47,4 @@ jobs:
                       assets/data/games.json
                       assets/photos/*.jpg
                   dangerous-clean-slate: false
-                  dry-run: false
+                  dry-run: true
