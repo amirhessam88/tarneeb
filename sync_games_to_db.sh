@@ -86,9 +86,7 @@ fi
 # Create the SQL command
 SQL_COMMAND="
 INSERT INTO $TABLE_NAME (timestamp, games) 
-VALUES (NOW(), '$JSON_DATA'::jsonb)
-ON CONFLICT (timestamp) 
-DO UPDATE SET games = EXCLUDED.games;
+VALUES (NOW(), '$JSON_DATA'::jsonb);
 "
 
 # Dry run mode
