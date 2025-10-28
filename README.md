@@ -20,6 +20,16 @@ Tarneeb Score Tracker is a comprehensive web application designed to help player
 - **📸 Photo Proof**: Upload multiple photos as game evidence
 - **📅 Date Tracking**: Organize games by date with automatic sorting
 
+### 🏆 Tournament System
+- **🏆 Tournament Brackets**: Create and manage tournament brackets with multiple rounds
+- **🎯 Multiple Tournaments**: Support for multiple tournaments with separate management
+- **📋 Team Format**: Support for teams with 2 players per team
+- **🏷️ Game Labels**: Unique labels for each match (e.g., R16-M1, QF-M1, SF-M1, Final)
+- **📸 Tournament Photos**: Upload proof photos for tournament games
+- **✏️ Edit Tournament Games**: Click any match to edit teams and add results
+- **🎨 Visual Bracket**: Beautiful tournament bracket visualization with connecting lines
+- **🔄 Auto-Advance**: Winners automatically advance to next round
+
 ### 📊 Statistics & Analytics
 - **👥 Player Rankings**: Score-based rankings with color-coded top performers
 - **🏆 Team Rankings**: Track team performance and statistics
@@ -99,20 +109,34 @@ Experience the full functionality of the Tarneeb Score Tracker with real-time da
 4. **Edit Games**: Click the edit button on any game card
 5. **Delete Games**: Remove games using the delete button
 
+### 🏆 For Tournament Management
+1. **Navigate to Tournaments**: Click the "Tournament" button on the main page
+2. **Select Tournament**: Choose an existing tournament from the list or create a new one
+3. **Create Tournament**: Admins can create a new tournament with a name (e.g., "2025 Championship")
+4. **Add Tournament Games**: Click "Add Tournament Game" to add matches
+   - Select the round (Round of 16, Quarterfinals, Semifinals, 3rd Place, Final)
+   - Choose the match label (e.g., R16-M1, R16-M2, etc.)
+   - Enter team names and players
+   - Add rounds and scores (optional - can be added later)
+   - Upload proof photos
+5. **Edit Matches**: Click any match card to edit teams, players, or add results
+6. **View Bracket**: See the complete tournament bracket with connecting lines showing progression
+
 ## 📁 Project Structure
 
 ```
 tarneeb/
 ├── 📄 index.php              # Main application entry point
+├── 📄 index.html             # Main page (HTML version)
+├── 📄 tournament.html        # Tournament bracket page
 ├── 📄 api.php                # Backend API endpoints
 ├── 📄 script.js              # Frontend JavaScript logic
 ├── 📄 styles.css             # Application styling
-├── 📄 index.html             # HTML backup version
 ├── 📄 LICENSE                # License information
 ├── 📄 README.md              # This file
 └── 📁 assets/
     ├── 📁 config/            # Secure configuration (environment variables)
-    ├── 📄 games.json         # Game data storage
+    ├── 📄 games.json         # Game data storage (includes tournament games)
     ├── 🖼️ favicon.png        # Site favicon
     ├── 🖼️ slickml.png        # SlickML logo
     └── 📁 photos/            # Uploaded game photos
