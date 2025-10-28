@@ -753,6 +753,10 @@ img {
     font-size: 20px;
 }
 
+.modal-body {
+    padding: 20px;
+}
+
 .close-btn {
     background: none;
     border: none;
@@ -2007,6 +2011,22 @@ datalist option:last-child {
     letter-spacing: 0.5px;
     box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
     z-index: 10;
+}
+
+.edit-match-icon {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    font-size: 16px;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: opacity 0.2s ease;
+    z-index: 15;
+}
+
+.edit-match-icon:hover {
+    opacity: 1;
+    transform: scale(1.1);
 }
 
 /* Add connecting lines to next round */

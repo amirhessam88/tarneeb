@@ -16,6 +16,8 @@ class TarneebTracker {
         ];
 
         this.tournamentRounds = [];
+        this.currentTournamentName = null;
+        this.editingTournamentGameId = null;
         this.initialized = true;
 
         // Initialize immediately
@@ -49,10 +51,30 @@ class TarneebTracker {
             console.log('Checking authentication...');
             await this.checkAuth();
 
-            // If on tournament page, render bracket after everything is loaded
+            // If on tournament page, restore tournament from storage or show selector
             if (this.isTournamentPage()) {
-                console.log('Rendering tournament bracket...');
-                this.renderTournamentBracket();
+                console.log('On tournament page...');
+
+                // Try to restore from localStorage
+                const savedTournament = this.getCurrentTournamentFromStorage();
+
+                if (savedTournament) {
+                    this.currentTournamentName = savedTournament;
+                    const pageTitleEl = document.getElementById('tournamentPageTitle');
+                    if (pageTitleEl) {
+                        pageTitleEl.textContent = `${savedTournament} Bracket`;
+                    }
+                    console.log('Restored tournament from storage:', savedTournament);
+                    this.renderTournamentBracket();
+                } else if (!this.currentTournamentName) {
+                    console.log('No tournament selected, showing selector...');
+                    setTimeout(() => {
+                        this.showTournamentSelector();
+                    }, 100);
+                } else {
+                    console.log('Rendering tournament bracket...');
+                    this.renderTournamentBracket();
+                }
             }
         } catch (error) {
             console.error('Error in loadConfig:', error);
@@ -350,7 +372,7 @@ class TarneebTracker {
         }
     }
 
-    addGame(gameData) {
+    async addGame(gameData) {
         const game = {
             id: Date.now().toString(),
             ...gameData,
@@ -361,7 +383,7 @@ class TarneebTracker {
             roundResults: this.calculateRoundResults(gameData.rounds)
         };
         this.games.unshift(game);
-        this.saveGames();
+        await this.saveGames();
         this.updateStats();
         this.renderGames();
     }
@@ -1973,8 +1995,210 @@ class TarneebTracker {
 
     // Tournament Management
     showTournamentModal() {
-        // Navigate to tournament page
+        // Check if we're on the tournament page
+        if (window.location.pathname.includes('tournament.html')) {
+            // On tournament page - show selector if no tournament selected
+            if (!this.currentTournamentName) {
+                this.showTournamentSelector();
+            }
+            return;
+        }
+
+        // Otherwise navigate to tournament page
         window.location.href = 'tournament.html';
+    }
+
+    showTournamentSelector() {
+        const modal = document.getElementById('tournamentSelectorModal');
+        const tournamentsContainer = document.getElementById('existingTournaments');
+        const inputGroup = document.querySelector('.form-group');
+        const description = modal.querySelector('p');
+
+        if (!modal || !tournamentsContainer) return;
+
+        // Populate existing tournaments
+        const tournamentNames = this.getAllTournamentNames();
+        tournamentsContainer.innerHTML = '';
+
+        if (tournamentNames.length > 0) {
+            // Create list of tournaments
+            tournamentNames.forEach(name => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'btn btn-secondary';
+                btn.textContent = name;
+                btn.style.textAlign = 'left';
+                btn.style.width = '100%';
+                btn.style.marginBottom = '10px';
+                btn.addEventListener('click', () => {
+                    this.openSelectedTournament(name);
+                });
+                tournamentsContainer.appendChild(btn);
+            });
+        } else {
+            // No tournaments available
+            if (description) {
+                description.textContent = 'No tournaments available yet.';
+            }
+            tournamentsContainer.innerHTML = '<p style="color: #6c757d;">Admins must create tournaments first.</p>';
+        }
+
+        modal.style.display = 'flex';
+        modal.classList.add('active');
+    }
+
+    hideTournamentSelector() {
+        const modal = document.getElementById('tournamentSelectorModal');
+        if (modal) {
+            modal.classList.remove('active');
+            modal.style.display = 'none';
+        }
+    }
+
+    showCreateTournamentModal() {
+        if (!this.currentUser) {
+            this.showLoginModal();
+            return;
+        }
+
+        const modal = document.getElementById('createTournamentModal');
+        if (modal) {
+            const form = document.getElementById('createTournamentForm');
+            if (form) form.reset();
+            modal.style.display = 'flex';
+            modal.classList.add('active');
+        }
+    }
+
+    hideCreateTournamentModal() {
+        const modal = document.getElementById('createTournamentModal');
+        if (modal) {
+            modal.classList.remove('active');
+            modal.style.display = 'none';
+        }
+    }
+
+    async handleCreateTournament() {
+        const tournamentName = document.getElementById('newTournamentName')?.value?.trim();
+
+        if (!tournamentName) {
+            alert('Please enter a tournament name');
+            return;
+        }
+
+        // Check if tournament already exists
+        const existingTournaments = this.getAllTournamentNames();
+        if (existingTournaments.includes(tournamentName)) {
+            alert('A tournament with this name already exists');
+            return;
+        }
+
+        // Set as current tournament
+        this.setCurrentTournament(tournamentName);
+
+        // Close modal
+        this.hideCreateTournamentModal();
+
+        // Show success message
+        this.showNotification('Tournament created successfully!', 'success');
+
+        // The bracket will be empty initially - admin can start adding games
+        this.renderTournamentBracket();
+    }
+
+    editTournamentGame(gameId) {
+        if (!this.currentUser) {
+            this.showLoginModal();
+            return;
+        }
+
+        const game = this.games.find(g => g.id === gameId);
+        if (!game) return;
+
+        // Store the game ID for editing
+        this.editingTournamentGameId = gameId;
+
+        // Populate form with game data
+        const tournamentRound = game.tournamentRound || 'round16';
+        document.getElementById('tournamentRound').value = tournamentRound;
+        document.getElementById('tournamentMatch').value = game.tournamentMatch || '0';
+
+        // Populate label options BEFORE setting the value
+        this.updateTournamentLabelOptions(tournamentRound);
+
+        // Now set the label value
+        setTimeout(() => {
+            document.getElementById('tournamentGameLabel').value = game.gameLabel || '';
+        }, 100);
+
+        // Populate team names
+        document.getElementById('tournamentTeam1Name').value = game.team1Name || '';
+        document.getElementById('tournamentTeam2Name').value = game.team2Name || '';
+
+        // Populate players
+        if (game.team1Players && game.team1Players.length >= 2) {
+            document.getElementById('tournamentTeam1Player1').value = game.team1Players[0];
+            document.getElementById('tournamentTeam1Player2').value = game.team1Players[1];
+        }
+        if (game.team2Players && game.team2Players.length >= 2) {
+            document.getElementById('tournamentTeam2Player1').value = game.team2Players[0];
+            document.getElementById('tournamentTeam2Player2').value = game.team2Players[1];
+        }
+
+        // Set date
+        if (game.gameDate) {
+            document.getElementById('tournamentGameDate').value = game.gameDate;
+        }
+
+        // Populate rounds if they exist
+        this.tournamentRounds = [];
+        if (game.rounds && game.rounds.length > 0) {
+            this.tournamentRounds = game.rounds.map((round, idx) => ({
+                id: `tournament_round_${Date.now()}_${idx}`,
+                number: round.number || idx + 1,
+                team1Score: round.team1Score,
+                team2Score: round.team2Score,
+                team1Kaboots: round.team1Kaboots,
+                team2Kaboots: round.team2Kaboots
+            }));
+            this.renderTournamentRounds();
+        } else {
+            document.getElementById('tournamentRoundsContainer').innerHTML = '';
+        }
+
+        // Update modal title
+        const modalTitle = document.querySelector('#tournamentGameModal .modal-header h2');
+        if (modalTitle) {
+            modalTitle.textContent = 'Edit Tournament Game';
+        }
+
+        // Show modal after a small delay to ensure labels are populated
+        setTimeout(() => {
+            this.showTournamentGameModal();
+        }, 50);
+    }
+
+    setCurrentTournament(tournamentName) {
+        this.currentTournamentName = tournamentName;
+        localStorage.setItem('currentTournament', tournamentName);
+
+        // Update title
+        const pageTitleEl = document.getElementById('tournamentPageTitle');
+        if (pageTitleEl) {
+            pageTitleEl.textContent = `${tournamentName} Bracket`;
+        }
+    }
+
+    getCurrentTournamentFromStorage() {
+        return localStorage.getItem('currentTournament');
+    }
+
+    openSelectedTournament(tournamentName) {
+        if (!tournamentName) return;
+
+        this.setCurrentTournament(tournamentName);
+        this.hideTournamentSelector();
+        this.renderTournamentBracket();
     }
 
     hideTournamentModal() {
@@ -1985,33 +2209,50 @@ class TarneebTracker {
         }
     }
 
-    getTournamentGames() {
+    getTournamentGames(tournamentName = null) {
         // Filter games that are tournament games
-        return this.games.filter(game => game.tournamentRound && game.tournamentMatch !== undefined);
+        const games = this.games.filter(game => game.tournamentRound && game.tournamentMatch !== undefined);
+
+        if (tournamentName) {
+            return games.filter(game => game.tournamentName === tournamentName);
+        }
+
+        return games;
+    }
+
+    getAllTournamentNames() {
+        const tournamentGames = this.games.filter(game => game.tournamentRound && game.tournamentMatch !== undefined && game.tournamentName);
+        const uniqueNames = [...new Set(tournamentGames.map(game => game.tournamentName))];
+        return uniqueNames.sort();
     }
 
     renderTournamentBracket() {
         const container = document.getElementById('tournamentBracket');
         if (!container) return;
 
-        const tournamentGames = this.getTournamentGames();
+        const tournamentGames = this.getTournamentGames(this.currentTournamentName);
+        console.log('Current tournament name:', this.currentTournamentName);
+        console.log('Tournament games found:', tournamentGames);
 
         // Build bracket structure - split into left and right sides with default labels
+        // Note: matchIdx 0 = R16-M1, matchIdx 1 = R16-M2, etc.
         const bracket = {
-            round16Left: Array(4).fill(null).map((_, i) => ({ team1: null, team2: null, winner: null, side: 'left', defaultLabel: `R16-M${i + 1}` })),
-            round16Right: Array(4).fill(null).map((_, i) => ({ team1: null, team2: null, winner: null, side: 'right', defaultLabel: `R16-M${i + 5}` })),
-            quarterLeft: Array(2).fill(null).map((_, i) => ({ team1: null, team2: null, winner: null, side: 'left', defaultLabel: `QF-M${i + 1}` })),
-            quarterRight: Array(2).fill(null).map((_, i) => ({ team1: null, team2: null, winner: null, side: 'right', defaultLabel: `QF-M${i + 3}` })),
-            semiLeft: { team1: null, team2: null, winner: null, side: 'left', defaultLabel: 'SF-M1' },
-            semiRight: { team1: null, team2: null, winner: null, side: 'right', defaultLabel: 'SF-M2' },
-            thirdPlace: { team1: null, team2: null, winner: null, defaultLabel: '3rd Place' },
-            final: { team1: null, team2: null, winner: null, defaultLabel: 'Final' }
+            round16Left: Array(4).fill(null).map((_, i) => ({ team1: null, team2: null, winner: null, side: 'left', defaultLabel: `R16-M${i + 1}`, expectedMatchIdx: i })),
+            round16Right: Array(4).fill(null).map((_, i) => ({ team1: null, team2: null, winner: null, side: 'right', defaultLabel: `R16-M${i + 5}`, expectedMatchIdx: i + 4 })),
+            quarterLeft: Array(2).fill(null).map((_, i) => ({ team1: null, team2: null, winner: null, side: 'left', defaultLabel: `QF-M${i + 1}`, expectedMatchIdx: i })),
+            quarterRight: Array(2).fill(null).map((_, i) => ({ team1: null, team2: null, winner: null, side: 'right', defaultLabel: `QF-M${i + 3}`, expectedMatchIdx: i + 2 })),
+            semiLeft: { team1: null, team2: null, winner: null, side: 'left', defaultLabel: 'SF-M1', expectedMatchIdx: 0 },
+            semiRight: { team1: null, team2: null, winner: null, side: 'right', defaultLabel: 'SF-M2', expectedMatchIdx: 1 },
+            thirdPlace: { team1: null, team2: null, winner: null, defaultLabel: '3rd Place', expectedMatchIdx: 0 },
+            final: { team1: null, team2: null, winner: null, defaultLabel: 'Final', expectedMatchIdx: 0 }
         };
 
         // Populate bracket from games
+        console.log('Tournament games to render:', tournamentGames);
         tournamentGames.forEach(game => {
             const round = game.tournamentRound;
             const matchIdx = game.tournamentMatch;
+            console.log('Processing game:', { id: game.id, label: game.gameLabel, round, matchIdx, tournamentName: game.tournamentName });
 
             // Build team names: team name + players
             const team1Display = game.team1Name
@@ -2024,16 +2265,20 @@ class TarneebTracker {
             const winner = game.winner === 'team1' ? team1Display : (game.winner === 'team2' ? team2Display : null);
 
             // Map matchIdx to bracket position (0-3 for left side, 4-7 for right side)
+            // matchIdx is 0-based, so use it directly
             const isRightSide = matchIdx >= 4;
             const normalizedMatchIdx = isRightSide ? matchIdx - 4 : matchIdx;
 
             if (round === 'round16') {
                 const sideMatches = isRightSide ? bracket.round16Right : bracket.round16Left;
-                if (sideMatches[normalizedMatchIdx]) {
+                console.log(`Placing matchIdx ${matchIdx} at index ${normalizedMatchIdx} in ${isRightSide ? 'right' : 'left'} side (array length: ${sideMatches.length})`);
+                if (normalizedMatchIdx < sideMatches.length) {
                     sideMatches[normalizedMatchIdx].team1 = team1Display;
                     sideMatches[normalizedMatchIdx].team2 = team2Display;
                     sideMatches[normalizedMatchIdx].winner = winner;
                     sideMatches[normalizedMatchIdx].game = game;
+                } else {
+                    console.error(`Index ${normalizedMatchIdx} out of bounds for array of length ${sideMatches.length}`);
                 }
             } else if (round === 'quarterfinals') {
                 const sideMatches = isRightSide ? bracket.quarterRight : bracket.quarterLeft;
@@ -2160,10 +2405,16 @@ class TarneebTracker {
         const team2 = match.team2 || 'TBD';
         const isTeam1Win = match.winner === team1;
         const isTeam2Win = match.winner === team2;
-        const gameLabel = match.game?.gameLabel || match.defaultLabel || '';
+        // Always use defaultLabel instead of gameLabel to ensure correct label based on position
+        const gameLabel = match.defaultLabel || '';
+        const gameId = match.game?.id || '';
+        const clickable = match.game && this.currentUser ? 'clickable-match' : '';
+        const cursorStyle = match.game && this.currentUser ? 'cursor: pointer;' : '';
+        const editIcon = match.game && this.currentUser ? '<div class="edit-match-icon" title="Click to edit">✏️</div>' : '';
 
         return `
-            <div class="match-card" data-label="${gameLabel}">
+            <div class="match-card ${clickable}" data-label="${gameLabel}" data-game-id="${gameId}" style="${cursorStyle}">
+                ${editIcon}
                 <div class="game-label-badge">${gameLabel}</div>
                 <div class="team-cell ${isTeam1Win ? 'winner' : ''}">
                     <div class="team-name">${team1}</div>
@@ -2190,13 +2441,26 @@ class TarneebTracker {
     }
 
     // Tournament Game Modal Management
+    getLabelForMatch(round, matchNumber) {
+        const labelMap = {
+            'round16': (idx) => `R16-M${idx + 1}`,
+            'quarterfinals': (idx) => `QF-M${idx + 1}`,
+            'semifinals': (idx) => `SF-M${idx + 1}`,
+            'thirdplace': (idx) => '3rd Place',
+            'final': (idx) => 'Final'
+        };
+
+        const getLabel = labelMap[round];
+        return getLabel ? getLabel(matchNumber) : '';
+    }
+
     updateTournamentLabelOptions(round) {
         const labelSelect = document.getElementById('tournamentGameLabel');
         if (!labelSelect) return;
 
-        // Get existing games for this round to show which labels are taken
-        const existingGames = this.getTournamentGames().filter(g => g.tournamentRound === round);
-        const usedLabels = new Set(existingGames.map(g => g.gameLabel).filter(Boolean));
+        // Get existing games for this round to show which MATCH POSITIONS are taken
+        const existingGames = this.getTournamentGames(this.currentTournamentName).filter(g => g.tournamentRound === round);
+        const usedMatchIndices = new Set(existingGames.map(g => g.tournamentMatch));
 
         // Clear existing options
         labelSelect.innerHTML = '<option value="">Select a label...</option>';
@@ -2211,11 +2475,12 @@ class TarneebTracker {
         };
 
         const labels = labelOptions[round] || [];
-        labels.forEach(label => {
+        labels.forEach((label, index) => {
             const option = document.createElement('option');
             option.value = label;
             option.textContent = label;
-            if (usedLabels.has(label)) {
+            // Mark as used if there's already a game at this match index
+            if (usedMatchIndices.has(index)) {
                 option.textContent += ' (Used)';
                 option.disabled = true;
                 option.style.color = '#999';
@@ -2230,19 +2495,29 @@ class TarneebTracker {
             return;
         }
 
+        // Only reset if not editing
+        if (!this.editingTournamentGameId) {
+            const modal = document.getElementById('tournamentGameModal');
+            this.tournamentRounds = [];
+            const form = document.getElementById('tournamentGameForm');
+            form.reset();
+            document.getElementById('tournamentRoundsContainer').innerHTML = '';
+
+            // Set default date
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('tournamentGameDate').value = today;
+
+            // Populate initial label options for the default round (round16)
+            this.updateTournamentLabelOptions('round16');
+
+            // Reset modal title
+            const modalTitle = document.querySelector('#tournamentGameModal .modal-header h2');
+            if (modalTitle) {
+                modalTitle.textContent = 'Add Tournament Game';
+            }
+        }
+
         const modal = document.getElementById('tournamentGameModal');
-        this.tournamentRounds = [];
-        const form = document.getElementById('tournamentGameForm');
-        form.reset();
-        document.getElementById('tournamentRoundsContainer').innerHTML = '';
-
-        // Set default date
-        const today = new Date().toISOString().split('T')[0];
-        document.getElementById('tournamentGameDate').value = today;
-
-        // Populate initial label options for the default round (round16)
-        this.updateTournamentLabelOptions('round16');
-
         modal.classList.add('active');
         modal.style.display = 'flex';
 
@@ -2432,25 +2707,36 @@ class TarneebTracker {
     }
 
     async handleTournamentGameSubmit() {
-        // Validate rounds
-        if (!this.tournamentRounds || this.tournamentRounds.length === 0) {
-            alert('Please add at least one round.');
+        // Validate tournament selected
+        if (!this.currentTournamentName) {
+            alert('Please select a tournament first.');
             return;
         }
 
-        if (this.tournamentRounds.length < 2 || this.tournamentRounds.length > 3) {
-            alert('Please add 2-3 rounds.');
-            return;
+        // Rounds are optional - can be added later when editing
+        // If rounds are provided, validate them
+        if (this.tournamentRounds && this.tournamentRounds.length > 0) {
+            if (this.tournamentRounds.length < 1 || this.tournamentRounds.length > 3) {
+                alert('Please add 1-3 rounds.');
+                return;
+            }
         }
 
         const form = document.getElementById('tournamentGameForm');
         const formData = new FormData(form);
 
         const round = formData.get('tournamentRound');
+        const selectedLabel = formData.get('tournamentGameLabel');
 
-        // Auto-calculate match number based on existing games for this round
-        const existingGamesForRound = this.getTournamentGames().filter(g => g.tournamentRound === round);
-        const matchNumber = existingGamesForRound.length;
+        // Calculate match number from the selected label
+        let matchNumber = 0;
+        if (selectedLabel) {
+            // Extract the match number from the label (e.g., "R16-M3" -> 2, "QF-M2" -> 1)
+            const match = selectedLabel.match(/M(\d+)$/);
+            if (match) {
+                matchNumber = parseInt(match[1]) - 1; // Convert to 0-based index
+            }
+        }
 
         // Update the hidden field with the calculated match number
         const matchInput = document.getElementById('tournamentMatch');
@@ -2469,22 +2755,40 @@ class TarneebTracker {
                 this.normalizePlayerName(formData.get('tournamentTeam2Player1')),
                 this.normalizePlayerName(formData.get('tournamentTeam2Player2'))
             ],
-            rounds: this.tournamentRounds.map(round => ({
-                number: round.number,
-                team1Score: round.team1Score,
-                team2Score: round.team2Score,
-                team1Kaboots: round.team1Kaboots,
-                team2Kaboots: round.team2Kaboots
-            })),
+            rounds: this.tournamentRounds && this.tournamentRounds.length > 0
+                ? this.tournamentRounds.map(round => ({
+                    number: round.number,
+                    team1Score: round.team1Score,
+                    team2Score: round.team2Score,
+                    team1Kaboots: round.team1Kaboots,
+                    team2Kaboots: round.team2Kaboots
+                }))
+                : [], // Empty rounds - will be filled in later when editing
             gameDate: formData.get('tournamentGameDate'),
-            gameLabel: formData.get('tournamentGameLabel'),
+            // Derive gameLabel from matchNumber to ensure consistency
+            gameLabel: this.getLabelForMatch(round, matchNumber),
             tournamentRound: round,
-            tournamentMatch: matchNumber
+            tournamentMatch: matchNumber,
+            tournamentName: this.currentTournamentName,
+            winner: undefined // No winner yet if no rounds
         };
 
-        // Add as a tournament game
-        this.addGame(gameData);
+        // If editing an existing game, update it instead of adding
+        if (this.editingTournamentGameId) {
+            const gameIndex = this.games.findIndex(g => g.id === this.editingTournamentGameId);
+            if (gameIndex !== -1) {
+                this.games[gameIndex] = { ...this.games[gameIndex], ...gameData };
+                await this.saveGames();
+                this.editingTournamentGameId = null;
+            }
+        } else {
+            // Add as a new tournament game
+            await this.addGame(gameData);
+        }
+
         this.hideTournamentGameModal();
+
+        // Re-render bracket after save completes
         this.renderTournamentBracket();
     }
 
@@ -2585,6 +2889,36 @@ class TarneebTracker {
         if (addTournamentGameBtn) {
             addTournamentGameBtn.addEventListener('click', () => {
                 this.showTournamentGameModal();
+            });
+        }
+
+        // Create tournament button
+        const createTournamentBtn = document.getElementById('createTournamentBtn');
+        if (createTournamentBtn) {
+            createTournamentBtn.addEventListener('click', () => {
+                this.showCreateTournamentModal();
+            });
+        }
+
+        const closeCreateTournamentModal = document.getElementById('closeCreateTournamentModal');
+        if (closeCreateTournamentModal) {
+            closeCreateTournamentModal.addEventListener('click', () => {
+                this.hideCreateTournamentModal();
+            });
+        }
+
+        const cancelCreateTournament = document.getElementById('cancelCreateTournament');
+        if (cancelCreateTournament) {
+            cancelCreateTournament.addEventListener('click', () => {
+                this.hideCreateTournamentModal();
+            });
+        }
+
+        const createTournamentForm = document.getElementById('createTournamentForm');
+        if (createTournamentForm) {
+            createTournamentForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                this.handleCreateTournament();
             });
         }
 
@@ -2771,6 +3105,21 @@ class TarneebTracker {
             }
         });
 
+        // Tournament selector modal event listeners
+        const closeTournamentSelectorModal = document.getElementById('closeTournamentSelectorModal');
+        if (closeTournamentSelectorModal) {
+            closeTournamentSelectorModal.addEventListener('click', () => {
+                this.hideTournamentSelector();
+            });
+        }
+
+        const cancelTournamentSelector = document.getElementById('closeTournamentSelector');
+        if (cancelTournamentSelector) {
+            cancelTournamentSelector.addEventListener('click', () => {
+                this.hideTournamentSelector();
+            });
+        }
+
         // Delegated click handler for game photos (robust against CSP/inline handler issues)
         document.addEventListener('click', (e) => {
             const photoEl = e.target && (e.target.classList && e.target.classList.contains('game-photo')
@@ -2784,6 +3133,17 @@ class TarneebTracker {
                     window.showPhoto(src);
                 } else if (window.tracker && typeof window.tracker.showEnlargedPhoto === 'function') {
                     window.tracker.showEnlargedPhoto(src);
+                }
+            }
+        });
+
+        // Delegated click handler for tournament match cards
+        document.addEventListener('click', (e) => {
+            const matchCard = e.target.closest('.clickable-match');
+            if (matchCard && this.currentUser) {
+                const gameId = matchCard.getAttribute('data-game-id');
+                if (gameId) {
+                    this.editTournamentGame(gameId);
                 }
             }
         });
@@ -2854,14 +3214,14 @@ class TarneebTracker {
             }
         }
 
-        this.saveGameData(gameData);
+        await this.saveGameData(gameData);
     }
 
-    saveGameData(gameData) {
+    async saveGameData(gameData) {
         if (this.editingGameId) {
             this.updateGame(this.editingGameId, gameData);
         } else {
-            this.addGame(gameData);
+            await this.addGame(gameData);
         }
         this.hideGameModal();
     }

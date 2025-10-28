@@ -10,13 +10,35 @@
 </head>
 
 <body>
+    <!-- Tournament Selector Modal -->
+    <div id="tournamentSelectorModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Select Tournament</h2>
+                <button id="closeTournamentSelectorModal"
+                    class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p style="margin-bottom: 20px;">Select an existing tournament to
+                    view:</p>
+                <div id="existingTournaments">
+                    <!-- Existing tournaments will be populated here -->
+                </div>
+                <div class="form-actions" style="margin-top: 20px;">
+                    <button type="button" id="closeTournamentSelector"
+                        class="btn btn-secondary">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Tournament Page -->
     <div id="mainScreen" class="screen active">
         <header class="header">
             <div class="header-left">
                 <img src="assets/favicon.png" alt="Tarneeb Logo"
                     class="header-logo">
-                <h1>Tournament Bracket</h1>
+                <h1 id="tournamentPageTitle">Tournament Bracket</h1>
             </div>
             <div class="header-actions">
                 <a href="index.html" class="btn btn-secondary">← Back to
@@ -25,6 +47,8 @@
                     Login</button>
                 <div id="adminControls" class="admin-controls"
                     style="display: none;">
+                    <button id="createTournamentBtn"
+                        class="btn btn-success">Create New Tournament</button>
                     <button id="addTournamentGameBtn"
                         class="btn btn-primary">Add Tournament Game</button>
                     <button id="logoutBtn"
@@ -45,6 +69,32 @@
                 <span class="footer-text">Powered by SlickML © 2025</span>
             </div>
         </footer>
+    </div>
+
+    <!-- Create Tournament Modal -->
+    <div id="createTournamentModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Create New Tournament</h2>
+                <button id="closeCreateTournamentModal"
+                    class="close-btn">&times;</button>
+            </div>
+            <form id="createTournamentForm" class="game-form">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="newTournamentName">Tournament Name:</label>
+                        <input type="text" id="newTournamentName"
+                            placeholder="e.g., Fall 2025 Championship" required>
+                    </div>
+                    <div class="form-actions" style="margin-top: 20px;">
+                        <button type="button" id="cancelCreateTournament"
+                            class="btn btn-secondary">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Create
+                            Tournament</button>
+                    </div>
+                </div>
+            </form>
+        </div>
     </div>
 
     <!-- Admin Login Modal -->
