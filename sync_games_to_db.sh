@@ -67,9 +67,9 @@ fi
 log "Reading games data from $FULL_GAMES_PATH"
 JSON_DATA=$(cat "$FULL_GAMES_PATH" | sed "s/'/''/g")
 
-# Validate JSON
-if ! echo "$JSON_DATA" | jq empty 2>/dev/null; then
-    log "Error: Invalid JSON format in games.json"
+# Basic JSON validation (check for basic structure)
+if ! echo "$JSON_DATA" | grep -q '"games"'; then
+    log "Error: Invalid JSON format - missing 'games' key"
     exit 1
 fi
 
@@ -77,6 +77,10 @@ fi
 if command -v jq &> /dev/null; then
     GAME_COUNT=$(jq '.games | length' "$FULL_GAMES_PATH")
     log "Found $GAME_COUNT games in the file"
+else
+    # Basic count using grep (less accurate but works without jq)
+    GAME_COUNT=$(echo "$JSON_DATA" | grep -o '"id":' | wc -l)
+    log "Found approximately $GAME_COUNT games in the file (estimated)"
 fi
 
 # Create the SQL command
@@ -105,7 +109,8 @@ log "Username: $DATABASE_USERNAME"
 export PGPASSWORD="$DATABASE_PASSWORD"
 
 # Execute the command
-if psql -h "$DB_HOST" -p "$DB_PORT" -U "$DATABASE_USERNAME" -d "$DB_NAME" -c "$SQL_COMMAND" 2>/dev/null; then
+log "Executing SQL command..."
+if psql -h "$DB_HOST" -p "$DB_PORT" -U "$DATABASE_USERNAME" -d "$DB_NAME" -c "$SQL_COMMAND"; then
     log "✅ Successfully synced games data to database"
     if [ -n "$GAME_COUNT" ]; then
         log "📊 Synced $GAME_COUNT games"
@@ -113,6 +118,7 @@ if psql -h "$DB_HOST" -p "$DB_PORT" -U "$DATABASE_USERNAME" -d "$DB_NAME" -c "$S
 else
     log "❌ Error syncing games data to database"
     log "Please check your database credentials and connection"
+    log "SQL Command: $SQL_COMMAND"
     exit 1
 fi
 
