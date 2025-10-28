@@ -160,8 +160,10 @@ class TarneebTracker {
                 localStorage.setItem('tarneeb_user', JSON.stringify(this.currentUser));
                 this.showAdminControls();
                 this.hideLoginModal();
-                // Only re-render on main page, tournament bracket is already rendered
-                if (!this.isTournamentPage()) {
+                // Re-render based on current page
+                if (this.isTournamentPage()) {
+                    this.renderTournamentBracket(); // Re-render bracket to show edit buttons
+                } else {
                     this.renderGames(); // Re-render games to show edit buttons
                 }
                 return true;
